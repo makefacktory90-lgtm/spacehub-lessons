@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 1 — Знакомство с AI-агентами и платформой AI from Space | SpaceHub</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0a0a0f;
+  --surface: #12121a;
+  --card: #1a1a28;
+  --text: #e8e6f0;
+  --text-dim: #8a87a0;
+  --accent-1: #ff3cac;
+  --accent-2: #00f5d4;
+  --accent-3: #fee440;
+  --accent-4: #7b61ff;
+  --gradient-hot: linear-gradient(135deg, #ff3cac, #ff6b35, #fee440);
+  --gradient-cool: linear-gradient(135deg, #7b61ff, #00f5d4);
+  --gradient-mesh: radial-gradient(ellipse at 20% 50%, rgba(123,97,255,0.15) 0%, transparent 50%),
+                   radial-gradient(ellipse at 80% 20%, rgba(255,60,172,0.12) 0%, transparent 50%),
+                   radial-gradient(ellipse at 60% 80%, rgba(0,245,212,0.1) 0%, transparent 50%);
+  --font-display: 'Unbounded', sans-serif;
+  --font-body: 'Manrope', sans-serif;
+  --correct: #00f5d4;
+  --wrong: #ff3cac;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ====== NAV ====== */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 1.2rem 2.5rem;
+  display: flex; justify-content: space-between; align-items: center;
+  backdrop-filter: blur(20px);
+  background: rgba(10,10,15,0.7);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.logo {
+  font-family: var(--font-display); font-weight: 900; font-size: 1.2rem;
+  background: var(--gradient-hot);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  text-decoration: none;
+}
+
+.nav-links { display: flex; gap: 2rem; list-style: none; }
+.nav-links a {
+  color: var(--text-dim); text-decoration: none; font-size: 0.85rem;
+  font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase;
+  transition: color 0.3s;
+}
+.nav-links a:hover { color: var(--accent-2); }
+
+.nav-lesson {
+  font-size: 0.8rem; color: var(--text-dim);
+  padding: 0.4rem 1rem; border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 100px;
+}
+
+.hamburger { display: none; background: none; border: none; cursor: pointer; }
+.hamburger span { display: block; width: 24px; height: 2px; background: var(--text); margin: 5px 0; transition: 0.3s; }
+
+/* ====== HERO ====== */
+.hero {
+  min-height: 70vh;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 8rem 2.5rem 4rem;
+  position: relative; overflow: hidden;
+}
+.hero::before {
+  content: ''; position: absolute; inset: 0;
+  background: var(--gradient-mesh); z-index: 0;
+}
+
+.hero-orb { position: absolute; border-radius: 50%; filter: blur(80px); animation: float 8s ease-in-out infinite; }
+.hero-orb--1 { width: 500px; height: 500px; background: rgba(255,60,172,0.15); top: -10%; right: -5%; }
+.hero-orb--2 { width: 400px; height: 400px; background: rgba(0,245,212,0.1); bottom: -15%; left: 10%; animation-delay: -3s; }
+.hero-orb--3 { width: 300px; height: 300px; background: rgba(123,97,255,0.12); top: 30%; left: 40%; animation-delay: -5s; }
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -20px) scale(1.05); }
+  66% { transform: translate(-20px, 15px) scale(0.95); }
+}
+
+.hero-content { position: relative; z-index: 1; max-width: 900px; }
+
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.5rem 1.2rem;
+  border: 1px solid rgba(0,245,212,0.3); border-radius: 100px;
+  font-size: 0.8rem; font-weight: 600; color: var(--accent-2);
+  margin-bottom: 2rem; letter-spacing: 0.08em; text-transform: uppercase;
+  animation: fadeInUp 0.8s ease-out;
+}
+.hero-tag::before {
+  content: ''; width: 6px; height: 6px;
+  background: var(--accent-2); border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.5); }
+}
+
+.hero h1 {
+  font-family: var(--font-display); font-weight: 900;
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  line-height: 1.1; margin-bottom: 1.5rem;
+  animation: fadeInUp 0.8s ease-out 0.15s both;
+}
+.hero h1 .highlight {
+  background: var(--gradient-hot);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+.hero-sub {
+  font-size: 1.15rem; color: var(--text-dim); max-width: 600px;
+  line-height: 1.7; margin-bottom: 2rem;
+  animation: fadeInUp 0.8s ease-out 0.3s both;
+}
+
+.hero-meta {
+  display: flex; gap: 2rem; flex-wrap: wrap;
+  animation: fadeInUp 0.8s ease-out 0.45s both;
+}
+.hero-meta-item {
+  display: flex; align-items: center; gap: 0.5rem;
+  color: var(--text-dim); font-size: 0.9rem;
+}
+.hero-meta-item svg { opacity: 0.6; }
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ====== SECTIONS ====== */
+section { padding: 5rem 2.5rem; position: relative; }
+
+.section-label {
+  display: inline-block; font-family: var(--font-display);
+  font-size: 0.7rem; font-weight: 700;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--accent-1); margin-bottom: 1rem;
+}
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+  font-weight: 900; line-height: 1.15; margin-bottom: 1.5rem;
+}
+
+.content-wrap { max-width: 900px; margin: 0 auto; }
+
+/* ====== TOC ====== */
+.toc-grid {
+  display: flex; flex-direction: column; gap: 0.5rem; margin-top: 2rem;
+}
+.toc-item {
+  display: flex; align-items: center; gap: 1.2rem;
+  padding: 1.2rem 1.5rem;
+  background: var(--card);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 16px;
+  text-decoration: none; color: var(--text);
+  transition: transform 0.3s, border-color 0.3s, background 0.3s;
+}
+.toc-item:hover {
+  transform: translateX(6px);
+  border-color: rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.03);
+}
+.toc-number {
+  font-family: var(--font-display); font-weight: 900; font-size: 1.3rem;
+  background: var(--gradient-cool);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  min-width: 40px;
+}
+.toc-text { flex: 1; display: flex; flex-direction: column; gap: 0.2rem; }
+.toc-title { font-weight: 600; font-size: 1rem; }
+.toc-time { font-size: 0.78rem; color: var(--text-dim); }
+.toc-item svg { color: var(--text-dim); transition: transform 0.3s; }
+.toc-item:hover svg { transform: translateX(4px); color: var(--accent-2); }
+
+/* ====== TIMESTAMPS ====== */
+.ts-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 0.6rem; margin-top: 2rem;
+}
+.ts-item {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 0.8rem 1.2rem;
+  background: var(--card);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 12px;
+  transition: border-color 0.3s;
+}
+.ts-item:hover { border-color: rgba(0,245,212,0.2); }
+.ts-time {
+  font-family: var(--font-display); font-weight: 700; font-size: 0.85rem;
+  color: var(--accent-2);
+  background: rgba(0,245,212,0.08);
+  border: 1px solid rgba(0,245,212,0.15);
+  border-radius: 8px;
+  padding: 0.3rem 0.7rem;
+  cursor: pointer; white-space: nowrap;
+  transition: background 0.3s;
+}
+.ts-time:hover { background: rgba(0,245,212,0.15); }
+.ts-label { font-size: 0.9rem; color: var(--text-dim); }
+
+/* ====== TOPIC SECTIONS ====== */
+.topic-section { border-bottom: 1px solid rgba(255,255,255,0.04); }
+.topic-inner { max-width: 900px; margin: 0 auto; }
+.topic-header {
+  display: flex; align-items: center; gap: 1rem; margin-bottom: 1.2rem;
+}
+.topic-number {
+  font-family: var(--font-display); font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  padding: 0.35rem 1rem; border-radius: 100px;
+}
+.topic-number.accent-1 { color: var(--accent-1); background: rgba(255,60,172,0.1); }
+.topic-number.accent-2 { color: var(--accent-2); background: rgba(0,245,212,0.1); }
+.topic-number.accent-3 { color: var(--accent-3); background: rgba(254,228,64,0.1); }
+.topic-number.accent-4 { color: var(--accent-4); background: rgba(123,97,255,0.1); }
+
+.topic-ts {
+  font-family: var(--font-display); font-size: 0.75rem;
+  color: var(--text-dim); opacity: 0.7;
+}
+
+.topic-desc {
+  color: var(--text-dim); font-size: 1.05rem; line-height: 1.8;
+  margin-bottom: 1.5rem;
+}
+
+.key-points {
+  list-style: none; display: flex; flex-direction: column; gap: 0.7rem;
+}
+.key-points li {
+  position: relative; padding-left: 1.5rem;
+  color: var(--text); font-size: 0.95rem; line-height: 1.6;
+}
+.key-points li::before {
+  content: '';
+  position: absolute; left: 0; top: 0.55rem;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--gradient-cool);
+}
+
+/* ====== QUIZ ====== */
+.quiz-grid {
+  display: flex; flex-direction: column; gap: 1rem; margin-top: 2rem;
+}
+.quiz-card {
+  background: var(--card);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 20px; overflow: hidden;
+  transition: border-color 0.3s;
+}
+.quiz-card:hover { border-color: rgba(255,255,255,0.1); }
+
+.quiz-q-header {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 1.5rem 1.8rem; cursor: pointer;
+  transition: background 0.3s;
+}
+.quiz-q-header:hover { background: rgba(255,255,255,0.02); }
+
+.quiz-q-num {
+  font-family: var(--font-display); font-weight: 900; font-size: 1.1rem;
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 12px;
+  background: rgba(123,97,255,0.12); color: var(--accent-4);
+  flex-shrink: 0;
+}
+.quiz-q-text { flex: 1; font-weight: 600; font-size: 1rem; }
+.quiz-chevron {
+  color: var(--text-dim); transition: transform 0.3s; flex-shrink: 0;
+}
+.quiz-card.open .quiz-chevron { transform: rotate(180deg); }
+
+.quiz-body {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.4s ease;
+}
+.quiz-card.open .quiz-body { max-height: 600px; }
+
+.quiz-options {
+  display: flex; flex-direction: column; gap: 0.5rem;
+  padding: 0 1.8rem 1.5rem;
+}
+.quiz-option {
+  display: flex; align-items: center; gap: 0.8rem;
+  padding: 0.9rem 1.2rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  color: var(--text); font-family: var(--font-body); font-size: 0.92rem;
+  cursor: pointer; text-align: left; width: 100%;
+  transition: all 0.3s;
+}
+.quiz-option:hover { border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); }
+
+.quiz-option-letter {
+  font-family: var(--font-display); font-weight: 700; font-size: 0.8rem;
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px; background: rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+
+.quiz-option.correct {
+  border-color: var(--correct); background: rgba(0,245,212,0.08);
+}
+.quiz-option.correct .quiz-option-letter { background: var(--correct); color: #0a0a0f; }
+
+.quiz-option.wrong {
+  border-color: var(--wrong); background: rgba(255,60,172,0.08);
+}
+.quiz-option.wrong .quiz-option-letter { background: var(--wrong); color: #0a0a0f; }
+
+.quiz-option.disabled { pointer-events: none; opacity: 0.6; }
+.quiz-option.correct.disabled { opacity: 1; }
+
+.quiz-explanation {
+  margin: 0 1.8rem 1.5rem;
+  padding: 1rem 1.2rem;
+  background: rgba(123,97,255,0.08);
+  border-left: 3px solid var(--accent-4);
+  border-radius: 0 12px 12px 0;
+  font-size: 0.9rem; color: var(--text-dim); line-height: 1.6;
+}
+
+/* ====== GLOSSARY ====== */
+.glossary-table {
+  width: 100%; margin-top: 2rem;
+  border-collapse: separate; border-spacing: 0 0.5rem;
+}
+.glossary-table tr {
+  background: var(--card);
+  transition: transform 0.3s;
+}
+.glossary-table tr:hover { transform: translateX(4px); }
+
+.glossary-table td {
+  padding: 1.2rem 1.5rem;
+  border: 1px solid rgba(255,255,255,0.05);
+  font-size: 0.95rem;
+}
+.glossary-table td:first-child {
+  border-radius: 14px 0 0 14px;
+  border-right: none;
+}
+.glossary-table td:last-child {
+  border-radius: 0 14px 14px 0;
+  border-left: none;
+}
+
+.gl-term {
+  font-family: var(--font-display); font-weight: 700; font-size: 0.95rem;
+  color: var(--accent-2); white-space: nowrap; width: 200px;
+}
+.gl-def { color: var(--text-dim); line-height: 1.6; }
+
+/* ====== VIDEO PLAYER ====== */
+.video-section {
+  padding: 0 2.5rem 3rem;
+  position: relative;
+}
+.video-wrap {
+  max-width: 900px; margin: 0 auto;
+  border-radius: 20px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--card);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+.video-container {
+  position: relative; width: 100%; padding-bottom: 56.25%; height: 0;
+}
+.video-container iframe {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+}
+
+/* ====== NOTEBOOKLM BUTTON ====== */
+.ask-btn-wrap {
+  max-width: 900px; margin: 2rem auto 0; text-align: center;
+}
+.ask-btn {
+  display: inline-flex; align-items: center; gap: 0.7rem;
+  padding: 0.9rem 2rem;
+  background: linear-gradient(135deg, rgba(123,97,255,0.2), rgba(0,245,212,0.2));
+  border: 1px solid rgba(123,97,255,0.3);
+  border-radius: 100px;
+  color: var(--text); font-family: var(--font-body);
+  font-size: 0.95rem; font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+.ask-btn:hover {
+  background: linear-gradient(135deg, rgba(123,97,255,0.35), rgba(0,245,212,0.35));
+  border-color: rgba(0,245,212,0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(123,97,255,0.2);
+}
+.ask-btn svg { opacity: 0.8; }
+
+/* ====== FOOTER ====== */
+footer {
+  max-width: 900px; margin: 0 auto; padding: 3rem 2.5rem;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 1.5rem;
+}
+.footer-left { display: flex; flex-direction: column; gap: 0.5rem; }
+.footer-brand {
+  font-family: var(--font-display); font-weight: 900; font-size: 1rem;
+  background: var(--gradient-hot);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.footer-tagline { font-size: 0.85rem; color: var(--text-dim); font-style: italic; }
+.footer-nav { display: flex; gap: 1.5rem; }
+.footer-nav a {
+  font-size: 0.85rem; color: var(--text-dim); text-decoration: none;
+  transition: color 0.3s;
+}
+.footer-nav a:hover { color: var(--accent-2); }
+
+/* ====== SCROLL ANIMATIONS ====== */
+.reveal {
+  opacity: 0; transform: translateY(40px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 900px) {
+  nav { padding: 1rem 1.5rem; }
+  .nav-links { display: none; }
+  .hamburger { display: block; }
+  section { padding: 3.5rem 1.5rem; }
+  .ts-grid { grid-template-columns: 1fr; }
+  .gl-term { white-space: normal; width: auto; }
+  .glossary-table td { display: block; border-radius: 0; border: none; }
+  .glossary-table td:first-child { padding-bottom: 0.3rem; border-radius: 14px 14px 0 0; }
+  .glossary-table td:last-child { padding-top: 0; border-radius: 0 0 14px 14px; }
+  .glossary-table tr { display: block; border-radius: 14px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 0.5rem; }
+  footer { flex-direction: column; text-align: center; }
+}
+
+@media (max-width: 600px) {
+  .hero { padding: 7rem 1.5rem 3rem; }
+  .hero-meta { gap: 1rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="logo" href="#">SPACEHUB</a>
+  <ul class="nav-links">
+    <li><a href="#toc">Содержание</a></li>
+    <li><a href="#timestamps">Таймкоды</a></li>
+    <li><a href="#quiz">Квиз</a></li>
+    <li><a href="#glossary">Глоссарий</a></li>
+  </ul>
+  <span class="nav-lesson">Урок 1 / 4</span>
+  <button class="hamburger" aria-label="Меню">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-orb hero-orb--1"></div>
+  <div class="hero-orb hero-orb--2"></div>
+  <div class="hero-orb hero-orb--3"></div>
+  <div class="hero-content">
+    <div class="hero-tag">Урок 1 из 4</div>
+    <h1>Знакомство с AI-агентами и платформой AI from Space</h1>
+    <p class="hero-sub">Вводный урок курса SpaceHub. Разбираем разницу между обычным ChatGPT и AI-агентами, знакомимся с платформой AI from Space и её возможностями: более 300 нейросетей, запуск в Telegram, создание ассистентов для бизнеса и монетизации.</p>
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        06.02.2026
+      </div>
+      <div class="hero-meta-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        6 тем
+      </div>
+      <div class="hero-meta-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        SpaceHub: собираем AI-агентов
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VIDEO PLAYER -->
+<section class="video-section">
+  <div class="video-wrap reveal">
+    <div class="video-container">
+      <div id="yt-player"></div>
+    </div>
+  </div>
+  <div class="ask-btn-wrap reveal">
+    <a class="ask-btn" href="https://notebooklm.google.com/notebook/4eed87bf-5e52-423f-a64f-19f578e05c87" target="_blank" rel="noopener">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Задать вопрос по уроку
+    </a>
+  </div>
+</section>
+
+<!-- TOC -->
+<section id="toc">
+  <div class="content-wrap">
+    <span class="section-label reveal">Содержание</span>
+    <h2 class="section-title reveal">О чём этот урок</h2>
+    <div class="toc-grid">
+      
+      <a href="#topic-0" class="toc-item reveal">
+        <span class="toc-number">01</span>
+        <span class="toc-text">
+          <span class="toc-title">Что такое AI-агент и чем он отличается от ChatGPT</span>
+          <span class="toc-time">00:08</span>
+        </span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <a href="#topic-1" class="toc-item reveal">
+        <span class="toc-number">02</span>
+        <span class="toc-text">
+          <span class="toc-title">Примеры использования AI-агентов</span>
+          <span class="toc-time">00:42</span>
+        </span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <a href="#topic-2" class="toc-item reveal">
+        <span class="toc-number">03</span>
+        <span class="toc-text">
+          <span class="toc-title">Платформа AI from Space: возможности</span>
+          <span class="toc-time">01:16</span>
+        </span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <a href="#topic-3" class="toc-item reveal">
+        <span class="toc-number">04</span>
+        <span class="toc-text">
+          <span class="toc-title">Для кого этот курс и что нужно для старта</span>
+          <span class="toc-time">01:37</span>
+        </span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <a href="#topic-4" class="toc-item reveal">
+        <span class="toc-number">05</span>
+        <span class="toc-text">
+          <span class="toc-title">Что можно создать: от ассистента до бизнеса</span>
+          <span class="toc-time">02:02</span>
+        </span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <a href="#topic-5" class="toc-item reveal">
+        <span class="toc-number">06</span>
+        <span class="toc-text">
+          <span class="toc-title">Каналы запуска агентов</span>
+          <span class="toc-time">02:52</span>
+        </span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- TIMESTAMPS -->
+<section id="timestamps">
+  <div class="content-wrap">
+    <span class="section-label reveal">Таймкоды</span>
+    <h2 class="section-title reveal">Навигация по уроку</h2>
+    <div class="ts-grid">
+      
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="0">00:00</button>
+        <span class="ts-label">Приветствие и введение в курс SpaceHub</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="8">00:08</button>
+        <span class="ts-label">Начинаем собирать AI-агентов на AI from Space</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="16">00:16</button>
+        <span class="ts-label">ChatGPT — универсальный помощник, одинаковый для всех</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="30">00:30</button>
+        <span class="ts-label">AI-агент — конструктор под конкретную задачу</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="42">00:42</button>
+        <span class="ts-label">Пример: личный AI-помощник</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="54">00:54</button>
+        <span class="ts-label">Агент запоминает всё и работает автономно</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="60">01:00</button>
+        <span class="ts-label">Пример: ассистент для клиентов в Telegram</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="73">01:13</button>
+        <span class="ts-label">Сравнение: ChatGPT — продукт, AI from Space — конструктор</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="82">01:22</button>
+        <span class="ts-label">Более 300 нейросетей на платформе</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="97">01:37</button>
+        <span class="ts-label">Не нужны предварительные знания</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="111">01:51</button>
+        <span class="ts-label">2026 — год агентов для всех</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="124">02:04</button>
+        <span class="ts-label">Варианты использования: личный ассистент</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="134">02:14</button>
+        <span class="ts-label">AI-администратор — ваш представитель</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="151">02:31</button>
+        <span class="ts-label">ИИ служба поддержки для бизнеса</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="172">02:52</button>
+        <span class="ts-label">Запуск в Telegram и на сайте</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TOPICS -->
+
+  <section id="topic-0" class="topic-section">
+    <div class="topic-inner reveal">
+      <div class="topic-header">
+        <span class="topic-number accent-1">Тема 01</span>
+        <span class="topic-ts">00:08</span>
+      </div>
+      <h2 class="section-title">Что такое AI-агент и чем он отличается от ChatGPT</h2>
+      <p class="topic-desc">ChatGPT — универсальный помощник, одинаковый для всех. Каждый раз нужно объяснять контекст заново. AI-агент — это ассистент, собранный под конкретную задачу как конструктор. Он обладает набором инструментов и расширяемой памятью, работает именно так, как вам нужно.</p>
+      <ul class="key-points">
+        <li>ChatGPT — универсальный, но одинаковый для всех</li>
+<li>Агент собирается под конкретную задачу как конструктор</li>
+<li>У агента есть инструменты и расширяемая память</li>
+<li>Агент запоминает контекст и работает автономно</li>
+
+      </ul>
+    </div>
+  </section>
+  <section id="topic-1" class="topic-section">
+    <div class="topic-inner reveal">
+      <div class="topic-header">
+        <span class="topic-number accent-2">Тема 02</span>
+        <span class="topic-ts">00:42</span>
+      </div>
+      <h2 class="section-title">Примеры использования AI-агентов</h2>
+      <p class="topic-desc">Рассматриваются два основных сценария: личный AI-помощник, который знает ваши проекты, стиль и предпочтения, и клиентский ассистент, который отвечает от вашего имени, запускается в Telegram без VPN и помнит каждого клиента отдельно.</p>
+      <ul class="key-points">
+        <li>Личный помощник — знает ваши проекты и предпочтения</li>
+<li>Клиентский ассистент — работает от вашего имени 24/7</li>
+<li>Запуск в Telegram без VPN и зарубежных карт</li>
+<li>Агент помнит каждого клиента отдельно</li>
+
+      </ul>
+    </div>
+  </section>
+  <section id="topic-2" class="topic-section">
+    <div class="topic-inner reveal">
+      <div class="topic-header">
+        <span class="topic-number accent-3">Тема 03</span>
+        <span class="topic-ts">01:16</span>
+      </div>
+      <h2 class="section-title">Платформа AI from Space: возможности</h2>
+      <p class="topic-desc">AI from Space — это конструктор для создания агентов. На платформе доступно более 300 нейросетей: ChatGPT, Gemini, Claude, DeepSeek, Grok и другие. Помимо текстовых моделей, есть генерация картинок и видео: MidJourney, VEO, Sora.</p>
+      <ul class="key-points">
+        <li>Более 300 нейросетей на одной платформе</li>
+<li>Текстовые модели: ChatGPT, Gemini, Claude, DeepSeek, Grok</li>
+<li>Генерация картинок и видео: MidJourney, VEO, Sora</li>
+<li>Платформа — конструктор, где вы собираете своё решение</li>
+
+      </ul>
+    </div>
+  </section>
+  <section id="topic-3" class="topic-section">
+    <div class="topic-inner reveal">
+      <div class="topic-header">
+        <span class="topic-number accent-4">Тема 04</span>
+        <span class="topic-ts">01:37</span>
+      </div>
+      <h2 class="section-title">Для кого этот курс и что нужно для старта</h2>
+      <p class="topic-desc">Курс не требует предварительных знаний. Платформа сделана так, чтобы любой мог разобраться. 2025 год был годом агентов для профессионалов, а 2026 — год, когда делать агентов могут все.</p>
+      <ul class="key-points">
+        <li>Не нужны предварительные знания</li>
+<li>2025 — агенты для профессионалов, 2026 — агенты для всех</li>
+<li>Нужны только время, внимание и желание разобраться</li>
+
+      </ul>
+    </div>
+  </section>
+  <section id="topic-4" class="topic-section">
+    <div class="topic-inner reveal">
+      <div class="topic-header">
+        <span class="topic-number accent-1">Тема 05</span>
+        <span class="topic-ts">02:02</span>
+      </div>
+      <h2 class="section-title">Что можно создать: от ассистента до бизнеса</h2>
+      <p class="topic-desc">Обзор возможных продуктов: личный AI-ассистент в Telegram, AI-администратор (общается с вами как помощник, а с другими как ваш представитель), служба поддержки для магазина или сайта, а также монетизация знаний через AI-продукты.</p>
+      <ul class="key-points">
+        <li>Личный AI-ассистент — как ChatGPT, но в Telegram</li>
+<li>AI-администратор — представитель, бронирует встречи</li>
+<li>Служба поддержки 24/7 на всех языках</li>
+<li>Монетизация знаний через собственный AI-продукт</li>
+
+      </ul>
+    </div>
+  </section>
+  <section id="topic-5" class="topic-section">
+    <div class="topic-inner reveal">
+      <div class="topic-header">
+        <span class="topic-number accent-2">Тема 06</span>
+        <span class="topic-ts">02:52</span>
+      </div>
+      <h2 class="section-title">Каналы запуска агентов</h2>
+      <p class="topic-desc">На данный момент созданных ассистентов можно запустить в Telegram и интегрировать на сайт. В ближайшее время появятся и другие каналы — соцсети и мессенджеры.</p>
+      <ul class="key-points">
+        <li>Telegram — основной канал запуска</li>
+<li>Виджет для сайта — уже доступен</li>
+<li>Скоро появятся другие соцсети и мессенджеры</li>
+
+      </ul>
+    </div>
+  </section>
+
+<!-- QUIZ -->
+<section id="quiz">
+  <div class="content-wrap">
+    <span class="section-label reveal">Проверь себя</span>
+    <h2 class="section-title reveal">Квиз по уроку</h2>
+    <div class="quiz-grid">
+      
+      <div class="quiz-card reveal">
+        <div class="quiz-q-header" onclick="toggleQuiz(this)">
+          <span class="quiz-q-num">1</span>
+          <span class="quiz-q-text">В чём главное отличие AI-агента от обычного ChatGPT?</span>
+          <svg class="quiz-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </div>
+        <div class="quiz-body">
+          <div class="quiz-options">
+            
+          <button class="quiz-option" data-correct="true"
+            onclick="selectOption(this)">
+            <span class="quiz-option-letter">A</span>
+            Агент собирается под конкретную задачу и имеет память
+          </button>
+          <button class="quiz-option" data-correct="false"
+            onclick="selectOption(this)">
+            <span class="quiz-option-letter">B</span>
+            Агент работает быстрее
+          </button>
+          <button class="quiz-option" data-correct="false"
+            onclick="selectOption(this)">
+            <span class="quiz-option-letter">C</span>
+            Агент бесплатный
+          </button>
+          <button class="quiz-option" data-correct="false"
+            onclick="selectOption(this)">
+            <span class="quiz-option-letter">D</span>
+            Агент работает только на английском
+          </button>
+          </div>
+          <div class="quiz-explanation" style="display:none">
+            <p>AI-агент — это ассистент, который собирается под конкретную задачу, обладает набором инструментов и расширяемой памятью, в отличие от универсального ChatGPT.</p>
+          </div>
+        </div>
+      </div>
+      <div class="quiz-card reveal">
+        <div class="quiz-q-header" onclick="toggleQuiz(this)">
+          <span class="quiz-q-num">2</span>
+          <span class="quiz-q-text">Сколько нейросетей доступно на платформе AI from Space?</span>
+          <svg class="quiz-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </div>
+        <div class="quiz-body">
+          <div class="quiz-options">
+            
+          <button class="quiz-option" data-correct="false"
+            onclick="selectOption(this)">
+            <span class="quiz-option-letter">A</span>
+            Около 50
+          </button>
+          <button class="quiz-option" data-correct="false"
+            onclick="selectOption(this)">
+            <span class="quiz-option-letter">B</span>
+            Около 100
+          </button>
+          <button class="quiz-option" data-correct="true"
+            onclick="selectOption(this)">
+            <span class="quiz-option-letter">C</span>
+            Более 300
+          </button>
+          <button class="quiz-option" data-correct="false"
+            onclick="selectOption(this)">
+            <span class="quiz-option-letter">D</span>
+            Более 1000
+          </button>
+          </div>
+          <div class="quiz-explanation" style="display:none">
+            <p>На платформе AI from Space доступно более 300 нейросетей, включая ChatGPT, Gemini, Claude, DeepSeek, Grok и другие.</p>
+          </div>
+        </div>
+      </div>
+      <div class="quiz-card reveal">
+        <div class="quiz-q-header" onclick="toggleQuiz(this)">
+          <span class="quiz-q-num">3</span>
+          <span class="quiz-q-text">Какой тип агента может общаться с вами как помощник, а с другими — как ваш представитель?</span>
+          <svg class="quiz-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </div>
+        <div class="quiz-body">
+          <div class="quiz-options">
+            
+          <button class="quiz-option" data-correct="false"
+            onclick="selectOption(this)">
+            <span class="quiz-option-letter">A</span>
+            Личный ассистент
+          </button>
+          <button class="quiz-option" data-correct="true"
+            onclick="selectOption(this)">
+            <span class="quiz-option-letter">B</span>
+            AI-администратор
+          </button>
+          <button class="quiz-option" data-correct="false"
+            onclick="selectOption(this)">
+            <span class="quiz-option-letter">C</span>
+            Служба поддержки
+          </button>
+          <button class="quiz-option" data-correct="false"
+            onclick="selectOption(this)">
+            <span class="quiz-option-letter">D</span>
+            Чат-бот
+          </button>
+          </div>
+          <div class="quiz-explanation" style="display:none">
+            <p>AI-администратор продолжает общаться с вами как личный помощник, а с другими людьми выступает как ваш представитель.</p>
+          </div>
+        </div>
+      </div>
+      <div class="quiz-card reveal">
+        <div class="quiz-q-header" onclick="toggleQuiz(this)">
+          <span class="quiz-q-num">4</span>
+          <span class="quiz-q-text">Какие каналы запуска агентов доступны на данный момент?</span>
+          <svg class="quiz-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </div>
+        <div class="quiz-body">
+          <div class="quiz-options">
+            
+          <button class="quiz-option" data-correct="false"
+            onclick="selectOption(this)">
+            <span class="quiz-option-letter">A</span>
+            Только сайт
+          </button>
+          <button class="quiz-option" data-correct="true"
+            onclick="selectOption(this)">
+            <span class="quiz-option-letter">B</span>
+            Telegram и сайт
+          </button>
+          <button class="quiz-option" data-correct="false"
+            onclick="selectOption(this)">
+            <span class="quiz-option-letter">C</span>
+            Instagram и WhatsApp
+          </button>
+          <button class="quiz-option" data-correct="false"
+            onclick="selectOption(this)">
+            <span class="quiz-option-letter">D</span>
+            Только Telegram
+          </button>
+          </div>
+          <div class="quiz-explanation" style="display:none">
+            <p>На данный момент агентов можно запустить в Telegram и интегрировать на сайт. Другие каналы появятся в ближайшее время.</p>
+          </div>
+        </div>
+      </div>
+      <div class="quiz-card reveal">
+        <div class="quiz-q-header" onclick="toggleQuiz(this)">
+          <span class="quiz-q-num">5</span>
+          <span class="quiz-q-text">Нужны ли предварительные знания для прохождения курса?</span>
+          <svg class="quiz-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </div>
+        <div class="quiz-body">
+          <div class="quiz-options">
+            
+          <button class="quiz-option" data-correct="false"
+            onclick="selectOption(this)">
+            <span class="quiz-option-letter">A</span>
+            Да, нужен опыт программирования
+          </button>
+          <button class="quiz-option" data-correct="false"
+            onclick="selectOption(this)">
+            <span class="quiz-option-letter">B</span>
+            Да, нужен опыт работы с AI
+          </button>
+          <button class="quiz-option" data-correct="true"
+            onclick="selectOption(this)">
+            <span class="quiz-option-letter">C</span>
+            Нет, платформа сделана для всех
+          </button>
+          <button class="quiz-option" data-correct="false"
+            onclick="selectOption(this)">
+            <span class="quiz-option-letter">D</span>
+            Да, нужно знать Python
+          </button>
+          </div>
+          <div class="quiz-explanation" style="display:none">
+            <p>Курс не требует предварительных знаний. Платформа сделана так, чтобы любой мог в ней разобраться.</p>
+          </div>
+        </div>
+      </div>
+      <div class="quiz-card reveal">
+        <div class="quiz-q-header" onclick="toggleQuiz(this)">
+          <span class="quiz-q-num">6</span>
+          <span class="quiz-q-text">Что в видео названо главной тенденцией 2026 года?</span>
+          <svg class="quiz-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </div>
+        <div class="quiz-body">
+          <div class="quiz-options">
+            
+          <button class="quiz-option" data-correct="false"
+            onclick="selectOption(this)">
+            <span class="quiz-option-letter">A</span>
+            Генерация видео нейросетями
+          </button>
+          <button class="quiz-option" data-correct="true"
+            onclick="selectOption(this)">
+            <span class="quiz-option-letter">B</span>
+            AI-агенты становятся доступны для всех
+          </button>
+          <button class="quiz-option" data-correct="false"
+            onclick="selectOption(this)">
+            <span class="quiz-option-letter">C</span>
+            Замена программистов на AI
+          </button>
+          <button class="quiz-option" data-correct="false"
+            onclick="selectOption(this)">
+            <span class="quiz-option-letter">D</span>
+            Полный переход на голосовые интерфейсы
+          </button>
+          </div>
+          <div class="quiz-explanation" style="display:none">
+            <p>В 2025 году агенты делались профессионалами для профессионалов, а 2026 — это год, когда делать агентов могут все.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GLOSSARY -->
+<section id="glossary">
+  <div class="content-wrap">
+    <span class="section-label reveal">Словарь</span>
+    <h2 class="section-title reveal">Глоссарий</h2>
+    <table class="glossary-table">
+      
+        <tr class="reveal">
+          <td class="gl-term">AI-агент</td>
+          <td class="gl-def">Автономный ассистент, собранный под конкретную задачу, обладающий инструментами и памятью — в отличие от универсального ChatGPT</td>
+        </tr>
+        <tr class="reveal">
+          <td class="gl-term">AI from Space</td>
+          <td class="gl-def">Платформа-конструктор для создания AI-агентов без программирования, с доступом к 300+ нейросетям</td>
+        </tr>
+        <tr class="reveal">
+          <td class="gl-term">ChatGPT</td>
+          <td class="gl-def">Универсальный AI-помощник от OpenAI, одинаковый для всех пользователей, без персонализации и инструментов</td>
+        </tr>
+        <tr class="reveal">
+          <td class="gl-term">Нейросеть (нейронка)</td>
+          <td class="gl-def">AI-модель, обученная на данных для выполнения задач: генерация текста, изображений, видео и др.</td>
+        </tr>
+        <tr class="reveal">
+          <td class="gl-term">Расширяемая память</td>
+          <td class="gl-def">Способность агента запоминать контекст, предпочтения пользователя и историю взаимодействий</td>
+        </tr>
+        <tr class="reveal">
+          <td class="gl-term">Инструменты агента</td>
+          <td class="gl-def">Набор возможностей агента: поиск в интернете, генерация картинок, постановка задач по расписанию и др.</td>
+        </tr>
+        <tr class="reveal">
+          <td class="gl-term">AI-администратор</td>
+          <td class="gl-def">Тип агента, который с владельцем общается как помощник, а с другими людьми — как его представитель</td>
+        </tr>
+        <tr class="reveal">
+          <td class="gl-term">Виджет на сайт</td>
+          <td class="gl-def">Встраиваемый элемент, позволяющий интегрировать AI-ассистента прямо на веб-страницу</td>
+        </tr>
+        <tr class="reveal">
+          <td class="gl-term">Монетизация</td>
+          <td class="gl-def">Получение дохода от AI-продукта — агента, собранного на основе ваших знаний и опыта</td>
+        </tr>
+        <tr class="reveal">
+          <td class="gl-term">Telegram-бот</td>
+          <td class="gl-def">Канал запуска агента в мессенджере Telegram, работающий без VPN и зарубежных банковских карт</td>
+        </tr>
+    </table>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-left">
+    <div class="footer-brand">SPACEHUB</div>
+    <div class="footer-tagline">Собираем AI-агентов</div>
+  </div>
+  <div class="footer-nav">
+    <a href="#toc">Содержание</a>
+    <a href="#quiz">Квиз</a>
+    <a href="#glossary">Глоссарий</a>
+  </div>
+</footer>
+
+<!-- YouTube IFrame API -->
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+// YouTube Player
+var player;
+function onYouTubeIframeAPIReady() {
+  player = new YT.Player('yt-player', {
+    videoId: 'C0OaZfHrz8g',
+    playerVars: {
+      rel: 0,
+      modestbranding: 1,
+      color: 'white'
+    }
+  });
+}
+
+function seekTo(seconds) {
+  if (player && player.seekTo) {
+    player.seekTo(seconds, true);
+    player.playVideo();
+    document.querySelector('.video-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+// Scroll reveal
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), i * 80);
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.12 });
+reveals.forEach(el => observer.observe(el));
+
+// Timestamp clicks → seek video
+document.querySelectorAll('.ts-time[data-seconds]').forEach(btn => {
+  btn.addEventListener('click', () => seekTo(parseInt(btn.dataset.seconds)));
+});
+
+// TOC timestamp clicks → seek video
+document.querySelectorAll('.toc-item').forEach(item => {
+  item.addEventListener('click', (e) => {
+    const timeText = item.querySelector('.toc-time')?.textContent;
+    if (timeText) {
+      const parts = timeText.split(':');
+      const seconds = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+      seekTo(seconds);
+      e.preventDefault();
+    }
+  });
+});
+
+// Topic timestamp clicks → seek video
+document.querySelectorAll('.topic-ts').forEach(ts => {
+  ts.style.cursor = 'pointer';
+  ts.addEventListener('click', () => {
+    const parts = ts.textContent.split(':');
+    const seconds = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    seekTo(seconds);
+  });
+});
+
+// Quiz toggle
+function toggleQuiz(header) {
+  const card = header.closest('.quiz-card');
+  card.classList.toggle('open');
+}
+
+// Quiz answer select
+function selectOption(btn) {
+  const card = btn.closest('.quiz-card');
+  const options = card.querySelectorAll('.quiz-option');
+  const explanation = card.querySelector('.quiz-explanation');
+
+  if (card.dataset.answered) return;
+  card.dataset.answered = 'true';
+
+  const isCorrect = btn.dataset.correct === 'true';
+  btn.classList.add(isCorrect ? 'correct' : 'wrong');
+
+  options.forEach(o => {
+    if (o !== btn) o.classList.add('disabled');
+    if (o.dataset.correct === 'true' && !isCorrect) o.classList.add('correct');
+  });
+
+  if (explanation) explanation.style.display = 'block';
+}
+
+// Mobile menu
+const hamburger = document.querySelector('.hamburger');
+const navLinks = document.querySelector('.nav-links');
+hamburger.addEventListener('click', () => {
+  const open = navLinks.style.display === 'flex';
+  navLinks.style.display = open ? 'none' : 'flex';
+  navLinks.style.flexDirection = 'column';
+  navLinks.style.position = 'absolute';
+  navLinks.style.top = '100%';
+  navLinks.style.left = '0';
+  navLinks.style.right = '0';
+  navLinks.style.background = 'rgba(10,10,15,0.95)';
+  navLinks.style.padding = '1.5rem';
+  navLinks.style.gap = '1.2rem';
+  navLinks.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+});
+</script>
+
+</body>
+</html>
