@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Урок 2 — Создаём первого AI-ассистента на AI from Space | SpaceHub</title>
+<title>Урок 1 — Создаём первого AI-ассистента на AI from Space | SpaceHub</title>
 <meta property="og:type" content="website">
-<meta property="og:title" content="SpaceHub: собираем AI-агентов — Урок 2">
+<meta property="og:title" content="SpaceHub: собираем AI-агентов — Урок 1">
 <meta property="og:description" content="Запись занятия с таймкодами и конспектом">
 <meta property="og:image" content="https://img.youtube.com/vi/SY1xVvx1yq8/maxresdefault.jpg">
 <meta property="og:url" content="https://makefacktory90-lgtm.github.io/spacehub-lessons/lesson-02.html">
@@ -413,29 +413,6 @@ section { padding: 5rem 2.5rem; position: relative; }
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
 }
 
-/* ====== NOTEBOOKLM BUTTON ====== */
-.ask-btn-wrap {
-  max-width: 900px; margin: 2rem auto 0; text-align: center;
-}
-.ask-btn {
-  display: inline-flex; align-items: center; gap: 0.7rem;
-  padding: 0.9rem 2rem;
-  background: linear-gradient(135deg, rgba(123,97,255,0.2), rgba(0,245,212,0.2));
-  border: 1px solid rgba(123,97,255,0.3);
-  border-radius: 100px;
-  color: var(--text); font-family: var(--font-body);
-  font-size: 0.95rem; font-weight: 600;
-  text-decoration: none;
-  transition: all 0.3s;
-  cursor: pointer;
-}
-.ask-btn:hover {
-  background: linear-gradient(135deg, rgba(123,97,255,0.35), rgba(0,245,212,0.35));
-  border-color: rgba(0,245,212,0.4);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(123,97,255,0.2);
-}
-.ask-btn svg { opacity: 0.8; }
 
 /* ====== FOOTER ====== */
 footer {
@@ -496,9 +473,8 @@ footer {
     <li><a href="#timestamps">Таймкоды</a></li>
     <li><a href="#quiz">Квиз</a></li>
     <li><a href="#glossary">Глоссарий</a></li>
-    <li><a href="#homework">Домашка</a></li>
   </ul>
-  <span class="nav-lesson">Урок 2 / 5</span>
+  <span class="nav-lesson">Урок 1 / 5</span>
   <button class="hamburger" aria-label="Меню">
     <span></span><span></span><span></span>
   </button>
@@ -510,7 +486,7 @@ footer {
   <div class="hero-orb hero-orb--2"></div>
   <div class="hero-orb hero-orb--3"></div>
   <div class="hero-content">
-    <div class="hero-tag">Урок 2 из 5</div>
+    <div class="hero-tag">Урок 1 из 5</div>
     <h1>Создаём первого AI-ассистента на AI from Space</h1>
     <p class="hero-sub">Практическое занятие: создаём личного AI-помощника на платформе AI from Space от начала до конца. Разбираем системные сообщения, выбор модели (Gemini Flash), настройку памяти, подключение инструментов (поиск в интернете, генерация картинок) и вывод бота в Telegram через BotFather.</p>
     <div class="hero-meta">
@@ -536,12 +512,6 @@ footer {
     <div class="video-container">
       <div id="yt-player"></div>
     </div>
-  </div>
-  <div class="ask-btn-wrap reveal">
-    <a class="ask-btn" href="https://notebooklm.google.com/notebook/aedcaa66-2f84-441f-88fb-1d4309016390" target="_blank" rel="noopener" id="notebooklm-btn">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      Задать вопрос по уроку
-    </a>
   </div>
 </section>
 
@@ -1151,26 +1121,6 @@ footer {
   </div>
 </section>
 
-<!-- HOMEWORK -->
-<section id="homework">
-  <div class="content-wrap" style="text-align:center;">
-    <span class="section-label reveal">Практика</span>
-    <h2 class="section-title reveal">Домашнее задание</h2>
-    <p class="reveal" style="color:var(--text-dim);font-size:1.05rem;line-height:1.8;margin-bottom:2rem;">
-      Создайте своего первого ассистента на AI from Space и выведите его в Telegram.<br>
-      Подробное задание — в презентации:
-    </p>
-    <a class="reveal" href="https://makefacktory90-lgtm.github.io/netflix-deck-hw1/" target="_blank" rel="noopener"
-       style="display:inline-flex;align-items:center;gap:0.8rem;padding:1.1rem 2.4rem;
-              background:var(--gradient-hot);border:none;border-radius:100px;
-              color:#fff;font-family:var(--font-display);font-weight:700;font-size:1rem;
-              text-decoration:none;letter-spacing:0.03em;
-              transition:transform 0.3s,box-shadow 0.3s;">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-      Открыть задание
-    </a>
-  </div>
-</section>
 
 <!-- FOOTER -->
 <footer>
