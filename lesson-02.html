@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Урок 2 — Создаём первого AI-ассистента на AI from Space | SpaceHub</title>
+<meta property="og:type" content="website">
+<meta property="og:title" content="SpaceHub: собираем AI-агентов — Урок 2">
+<meta property="og:description" content="Запись занятия с таймкодами и конспектом">
+<meta property="og:image" content="https://img.youtube.com/vi/SY1xVvx1yq8/maxresdefault.jpg">
+<meta property="og:url" content="https://makefacktory90-lgtm.github.io/spacehub-lessons/lesson-02.html">
+<meta name="twitter:card" content="summary_large_image">
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -388,6 +394,49 @@ section { padding: 5rem 2.5rem; position: relative; }
 }
 .gl-def { color: var(--text-dim); line-height: 1.6; }
 
+/* ====== VIDEO PLAYER ====== */
+.video-section {
+  padding: 0 2.5rem 3rem;
+  position: relative;
+}
+.video-wrap {
+  max-width: 900px; margin: 0 auto;
+  border-radius: 20px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--card);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+.video-container {
+  position: relative; width: 100%; padding-bottom: 56.25%; height: 0;
+}
+.video-container iframe {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+}
+
+/* ====== NOTEBOOKLM BUTTON ====== */
+.ask-btn-wrap {
+  max-width: 900px; margin: 2rem auto 0; text-align: center;
+}
+.ask-btn {
+  display: inline-flex; align-items: center; gap: 0.7rem;
+  padding: 0.9rem 2rem;
+  background: linear-gradient(135deg, rgba(123,97,255,0.2), rgba(0,245,212,0.2));
+  border: 1px solid rgba(123,97,255,0.3);
+  border-radius: 100px;
+  color: var(--text); font-family: var(--font-body);
+  font-size: 0.95rem; font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+.ask-btn:hover {
+  background: linear-gradient(135deg, rgba(123,97,255,0.35), rgba(0,245,212,0.35));
+  border-color: rgba(0,245,212,0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(123,97,255,0.2);
+}
+.ask-btn svg { opacity: 0.8; }
+
 /* ====== FOOTER ====== */
 footer {
   max-width: 900px; margin: 0 auto; padding: 3rem 2.5rem;
@@ -478,6 +527,21 @@ footer {
         SpaceHub: собираем AI-агентов
       </div>
     </div>
+  </div>
+</section>
+
+<!-- VIDEO PLAYER -->
+<section class="video-section">
+  <div class="video-wrap reveal">
+    <div class="video-container">
+      <div id="yt-player"></div>
+    </div>
+  </div>
+  <div class="ask-btn-wrap reveal">
+    <a class="ask-btn" href="#" target="_blank" rel="noopener" id="notebooklm-btn">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Задать вопрос по уроку
+    </a>
   </div>
 </section>
 
@@ -1121,7 +1185,30 @@ footer {
   </div>
 </footer>
 
+<!-- YouTube IFrame API -->
+<script src="https://www.youtube.com/iframe_api"></script>
 <script>
+// YouTube Player
+var player;
+function onYouTubeIframeAPIReady() {
+  player = new YT.Player('yt-player', {
+    videoId: 'SY1xVvx1yq8',
+    playerVars: {
+      rel: 0,
+      modestbranding: 1,
+      color: 'white'
+    }
+  });
+}
+
+function seekTo(seconds) {
+  if (player && player.seekTo) {
+    player.seekTo(seconds, true);
+    player.playVideo();
+    document.querySelector('.video-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
 // Scroll reveal
 const reveals = document.querySelectorAll('.reveal');
 const observer = new IntersectionObserver((entries) => {
@@ -1133,6 +1220,34 @@ const observer = new IntersectionObserver((entries) => {
   });
 }, { threshold: 0.12 });
 reveals.forEach(el => observer.observe(el));
+
+// Timestamp clicks → seek video
+document.querySelectorAll('.ts-time[data-seconds]').forEach(btn => {
+  btn.addEventListener('click', () => seekTo(parseInt(btn.dataset.seconds)));
+});
+
+// TOC timestamp clicks → seek video
+document.querySelectorAll('.toc-item').forEach(item => {
+  item.addEventListener('click', (e) => {
+    const timeText = item.querySelector('.toc-time')?.textContent;
+    if (timeText) {
+      const parts = timeText.split(':');
+      const seconds = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+      seekTo(seconds);
+      e.preventDefault();
+    }
+  });
+});
+
+// Topic timestamp clicks → seek video
+document.querySelectorAll('.topic-ts').forEach(ts => {
+  ts.style.cursor = 'pointer';
+  ts.addEventListener('click', () => {
+    const parts = ts.textContent.split(':');
+    const seconds = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    seekTo(seconds);
+  });
+});
 
 // Quiz toggle
 function toggleQuiz(header) {
@@ -1146,20 +1261,17 @@ function selectOption(btn) {
   const options = card.querySelectorAll('.quiz-option');
   const explanation = card.querySelector('.quiz-explanation');
 
-  // Блокируем повторные нажатия
   if (card.dataset.answered) return;
   card.dataset.answered = 'true';
 
   const isCorrect = btn.dataset.correct === 'true';
   btn.classList.add(isCorrect ? 'correct' : 'wrong');
 
-  // Показываем правильный ответ
   options.forEach(o => {
     if (o !== btn) o.classList.add('disabled');
     if (o.dataset.correct === 'true' && !isCorrect) o.classList.add('correct');
   });
 
-  // Показываем объяснение
   if (explanation) explanation.style.display = 'block';
 }
 
