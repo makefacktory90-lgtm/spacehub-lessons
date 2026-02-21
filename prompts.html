@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Промпты — SpaceHub</title>
+<meta property="og:title" content="SpaceHub: Библиотека промптов">
+<meta property="og:description" content="Три промпта для настройки AI-ассистента">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0a0a0f;
+  --surface: #12121a;
+  --card: #1a1a28;
+  --text: #e8e6f0;
+  --text-dim: #8a87a0;
+  --accent-1: #ff3cac;
+  --accent-2: #00f5d4;
+  --accent-3: #ffe440;
+  --accent-4: #7b61ff;
+  --gradient-hot: linear-gradient(135deg, #ff3cac, #ff6b35, #fee440);
+  --gradient-cool: linear-gradient(135deg, #7b61ff, #00f5d4);
+  --font-display: 'Unbounded', sans-serif;
+  --font-body: 'Manrope', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: radial-gradient(ellipse at 20% 50%, rgba(123,97,255,0.08) 0%, transparent 50%),
+              radial-gradient(ellipse at 80% 20%, rgba(255,60,172,0.06) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 2rem;
+  background: rgba(10,10,15,0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.logo {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 0.85rem;
+  color: var(--accent-2);
+  text-decoration: none;
+  letter-spacing: 0.1em;
+}
+.nav-tag {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+}
+
+/* HERO */
+.hero {
+  padding: 8rem 2rem 3rem;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+.hero-tag {
+  display: inline-block;
+  padding: 0.4rem 1.2rem;
+  border: 1px solid rgba(0,245,212,0.3);
+  border-radius: 100px;
+  font-size: 0.7rem;
+  color: var(--accent-2);
+  letter-spacing: 0.15em;
+  margin-bottom: 1.5rem;
+}
+.hero h1 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  line-height: 1.3;
+  background: var(--gradient-cool);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 1rem;
+}
+.hero p {
+  font-size: 1rem;
+  color: var(--text-dim);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* CARDS */
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+  position: relative;
+  z-index: 1;
+}
+
+.prompt-card {
+  background: var(--card);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+.prompt-card:hover {
+  border-color: rgba(123,97,255,0.3);
+}
+
+.prompt-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  cursor: pointer;
+  user-select: none;
+}
+.prompt-num {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.5rem;
+  min-width: 2.5rem;
+  text-align: center;
+}
+.prompt-card:nth-child(1) .prompt-num { color: var(--accent-2); }
+.prompt-card:nth-child(2) .prompt-num { color: var(--accent-3); }
+.prompt-card:nth-child(3) .prompt-num { color: var(--accent-1); }
+
+.prompt-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  flex: 1;
+}
+.prompt-arrow {
+  font-size: 1.2rem;
+  color: var(--text-dim);
+  transition: transform 0.3s;
+}
+.prompt-card.open .prompt-arrow {
+  transform: rotate(180deg);
+}
+
+.prompt-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease;
+}
+.prompt-card.open .prompt-body {
+  max-height: 8000px;
+}
+
+.prompt-content {
+  padding: 0 2rem 2rem;
+  font-size: 0.9rem;
+  line-height: 1.8;
+  color: var(--text-dim);
+}
+.prompt-content h3 {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin: 1.5rem 0 0.8rem;
+}
+.prompt-content h3:first-child {
+  margin-top: 0;
+}
+.prompt-content p {
+  margin-bottom: 0.8rem;
+}
+.prompt-content strong {
+  color: var(--text);
+}
+.prompt-content ul, .prompt-content ol {
+  margin: 0.5rem 0 1rem 1.2rem;
+}
+.prompt-content li {
+  margin-bottom: 0.4rem;
+}
+
+/* CODE BLOCKS */
+.code-block {
+  background: var(--bg);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 1.2rem 1.5rem;
+  margin: 1rem 0;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.7;
+  color: var(--accent-2);
+  white-space: pre-wrap;
+  word-break: break-word;
+  position: relative;
+}
+.code-block .copy-btn {
+  position: absolute;
+  top: 0.8rem;
+  right: 0.8rem;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  padding: 0.3rem 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.code-block .copy-btn:hover {
+  background: rgba(123,97,255,0.2);
+  color: var(--text);
+}
+
+.template-field {
+  color: var(--accent-3);
+}
+
+/* DOWNLOAD */
+.download-section {
+  text-align: center;
+  padding: 3rem 0;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  margin-top: 2rem;
+}
+.download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1rem 2.5rem;
+  background: var(--gradient-cool);
+  border: none;
+  border-radius: 100px;
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: none;
+  letter-spacing: 0.03em;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.download-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(123,97,255,0.3);
+}
+
+/* REVEAL */
+.reveal {
+  opacity: 0; transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.visible {
+  opacity: 1; transform: translateY(0);
+}
+
+/* PRINT */
+@media print {
+  nav, .download-section, .prompt-arrow, .copy-btn { display: none !important; }
+  body { background: #fff; color: #111; }
+  body::before { display: none; }
+  .hero { padding-top: 2rem; }
+  .hero h1 { -webkit-text-fill-color: #111; background: none; }
+  .hero-tag { color: #111; border-color: #111; }
+  .hero p, .prompt-content, .prompt-content li { color: #333; }
+  .prompt-card { border: 1px solid #ddd; break-inside: avoid; }
+  .prompt-card .prompt-body { max-height: none !important; }
+  .prompt-title, .prompt-content h3, .prompt-content strong { color: #111; }
+  .prompt-num { -webkit-text-fill-color: #111; }
+  .code-block { background: #f5f5f5; color: #111; border-color: #ddd; }
+  .container { max-width: 100%; }
+}
+
+@media (max-width: 600px) {
+  .prompt-header { padding: 1.2rem 1.2rem; }
+  .prompt-content { padding: 0 1.2rem 1.5rem; }
+  .prompt-num { font-size: 1.2rem; min-width: 2rem; }
+  .prompt-title { font-size: 0.8rem; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="https://iraai.ru/spacehub/#cockpit">&larr; SPACEHUB</a>
+  <span class="nav-tag">БИБЛИОТЕКА ПРОМПТОВ</span>
+</nav>
+
+<section class="hero">
+  <div class="hero-tag">SPACEHUB PROMPTS</div>
+  <h1>Промпты для работы с AI</h1>
+  <p>Три промпта, которые усилят вашего ассистента. Нажмите на карточку, чтобы раскрыть.</p>
+</section>
+
+<div class="container">
+
+  <!-- PROMPT 1: Research Guide -->
+  <div class="prompt-card reveal" id="prompt-1">
+    <div class="prompt-header" onclick="toggleCard(this)">
+      <span class="prompt-num">01</span>
+      <span class="prompt-title">Research Guide &mdash; как делать ресёрчи с AI</span>
+      <span class="prompt-arrow">&darr;</span>
+    </div>
+    <div class="prompt-body">
+      <div class="prompt-content">
+        <h3>Принципы</h3>
+        <ol>
+          <li><strong>Все уже умные.</strong> Современные AI-агенты умеют искать сами. Не надо им объяснять КАК искать или ГДЕ искать. Им нужно понять ЧТО мы ищем и ЗАЧЕМ.</li>
+          <li><strong>Без внятного ТЗ &mdash; дальше сами знаете.</strong> Чем больше контекста вы даёте агенту &mdash; тем лучше результат. Описывайте ситуацию, что уже есть, что пробовали, почему это важно. Не бойтесь длинных промптов.</li>
+          <li><strong>Перед формулировкой промпта &mdash; соберите контекст.</strong> Прочитайте релевантные файлы и заметки, чтобы дать агенту реальную картину, а не абстракцию.</li>
+          <li><strong>Не формальные запросы.</strong> Пишите как умному человеку. Формальные структурированные запросы &rarr; формальные дженерик ответы. Живой контекст + живой вопрос &rarr; интересные находки.</li>
+          <li><strong>А что конкретно?</strong> Если после сбора контекста не до конца ясно, какая цель стоит за вопросом &mdash; лучше сначала уточнить, чем отправлять размытый запрос.</li>
+          <li><strong>Итерация.</strong> Первый ответ агента &mdash; черновик, не финал. Получили результат &rarr; прочитали &rarr; уточнили (&laquo;копни глубже вот в эту часть&raquo;, &laquo;а есть кейсы из другой отрасли?&raquo;, &laquo;это поверхностно, найди конкретные цифры&raquo;). Лучшие ресёрчи = 2&ndash;3 итерации.</li>
+        </ol>
+
+        <h3>Структура промпта</h3>
+        <ul>
+          <li><strong>Намерение:</strong> ради чего делаем ресёрч, какое решение принимаем</li>
+          <li><strong>Желаемый результат:</strong> что конкретно хотим получить</li>
+          <li><strong>Контекст:</strong> ситуация, что уже есть, что пробовали</li>
+          <li><strong>Почему важно:</strong> чтобы агент мог копнуть глубже, увидев связи</li>
+        </ul>
+
+        <h3>Секрет: как искать &laquo;как делать X&raquo;</h3>
+        <p>Когда вы просите агента узнать, как что-то делается &mdash; он должен искать не документацию, а кейсы живых людей. Как именно они решали задачу, что сработало, что нет, плюсы, минусы, подводные камни.</p>
+
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyBlock(this)">Копировать</button>Ищи в первую очередь кейсы реальных пользователей, их истории и опыт. Не пересказывай документацию. Мне нужно понять, как люди это делают на практике, что у них сработало и что нет.</div>
+
+        <h3>Для deep research</h3>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyBlock(this)">Копировать</button>Ты - инструмент для глубокого исследования. Твоя задача - ВЫПОЛНИТЬ исследование ниже: искать в интернете, читать страницы, собрать находки в подробный отчёт.
+
+НЕ спрашивай разрешения, НЕ предлагай план, НЕ задавай уточняющих вопросов. Просто СДЕЛАЙ исследование и верни полный отчёт.
+
+ФОРМАТ: Подробный отчёт с находками по темам. Конкретные цитаты, ссылки, примеры.
+
+ЗАДАЧА: <span class="template-field">[ваш промпт с контекстом]</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROMPT 2: Personal AI Setup -->
+  <div class="prompt-card reveal" id="prompt-2">
+    <div class="prompt-header" onclick="toggleCard(this)">
+      <span class="prompt-num">02</span>
+      <span class="prompt-title">Шаблон настройки AI-ассистента под себя</span>
+      <span class="prompt-arrow">&darr;</span>
+    </div>
+    <div class="prompt-body">
+      <div class="prompt-content">
+        <p>Заполните этот шаблон и вставьте в системную настройку вашего ассистента. Чем честнее ответы &mdash; тем полезнее ассистент.</p>
+
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyBlock(this)">Копировать</button>## Контекст
+Ты мой AI-ассистент. Знаешь мой контекст и мои внутренние особенности.
+
+### Мой прошлый год (5-10 ключевых событий)
+-
+-
+-
+
+## Кто я
+Профессия / роль:
+Как я принимаю решения:
+Моя суперсила:
+Моя слепая зона:
+
+## Энергия
+Что заряжает:
+-
+-
+
+Что сливает энергию:
+-
+-
+
+## Внутренняя карта
+
+### Главное убеждение о себе
+[Установка, которая управляет вашим поведением. Та мысль, которая звучит как "правда", хотя это просто привычка.]
+
+Фраза, которая это отключает:
+
+### Что мне мешает (2-3 внутренних голоса)
+
+Голос 1:
+- Что говорит:
+- Когда появляется:
+- Чем нейтрализовать:
+
+Голос 2:
+- Что говорит:
+- Что запускает:
+- Чем нейтрализовать:
+
+Голос 3:
+- Что говорит:
+- Что запускает:
+- Чем нейтрализовать:
+
+### Что мне помогает (1-2 состояния силы)
+
+Состояние 1:
+- Когда включается:
+- Как вызвать:
+
+Состояние 2:
+- Когда включается:
+- Как вызвать:
+
+## Мои повторяющиеся ловушки
+
+Ловушка 1:
+- Как выглядит:
+- Что делать вместо:
+
+Ловушка 2:
+- Как выглядит:
+- Что делать вместо:
+
+## Экстренные протоколы
+[Что делать и когда. Ключевые реакции и как с ними работать.]
+
+## Принципы (3-5 правил, по которым живёшь)
+1.
+2.
+3.
+
+## Метрики
+- сейчас → цель
+- сейчас → цель
+
+## Роль AI-партнёра
+[Что должен делать бот]
+
+## Факты обо мне
+-
+-</div>
+
+        <p>Если у вас есть актуальные результаты психологических тестов &mdash; тоже можно загрузить.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROMPT 3: AI Mentor -->
+  <div class="prompt-card reveal" id="prompt-3">
+    <div class="prompt-header" onclick="toggleCard(this)">
+      <span class="prompt-num">03</span>
+      <span class="prompt-title">AI-ментор &mdash; глубокая настройка</span>
+      <span class="prompt-arrow">&darr;</span>
+    </div>
+    <div class="prompt-body">
+      <div class="prompt-content">
+        <p>Большинство людей настраивают AI-ассистента так: &laquo;Ты мой ментор. Помогай мне.&raquo; И получают вежливого бота, который со всем соглашается.</p>
+        <p>Эта система превращает AI из вежливого собеседника в партнёра, который знает ваш контекст, ловит вас на откладывании и ведёт к конкретному результату.</p>
+
+        <h3>Шаг 1: Ответьте на 10 вопросов</h3>
+        <ol>
+          <li><strong>Ваша цель на ближайшие 8 недель.</strong> Одна главная цель. Не три, не пять &mdash; одна. С измеримым результатом.</li>
+          <li><strong>Что вы обычно откладываете.</strong> Какие конкретные действия вы саботируете? Где застреваете?</li>
+          <li><strong>Тон, который вас двигает.</strong> Какой стиль общения заставляет вас действовать, а не обижаться?</li>
+          <li><strong>Что вас тормозит (триггеры).</strong> Какие слова или подходы вызывают сопротивление, а не мотивацию?</li>
+          <li><strong>Ваш рабочий ритм.</strong> Когда и сколько вы готовы работать? Как удобнее получать задачи?</li>
+          <li><strong>Как вас проверять.</strong> Как ментор должен контролировать прогресс? Насколько жёстко?</li>
+          <li><strong>Ваш контекст.</strong> Ниша, опыт, ресурсы, ограничения.</li>
+          <li><strong>Ваши паттерны саботажа.</strong> Как именно вы обычно сливаете задачи?</li>
+          <li><strong>Что значит &laquo;получилось&raquo;.</strong> По каким признакам вы и ментор поймёте, что всё идёт правильно?</li>
+          <li><strong>Запретные зоны.</strong> Что ментор НЕ должен делать? Куда не лезть?</li>
+        </ol>
+
+        <h3>Шаг 2: Соберите ответы с помощью AI</h3>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyBlock(this)">Копировать</button>Помоги мне настроить AI-ментора под себя.
+Задавай мне следующие 10 вопросов по одному.
+Если я диктую - приведи мои ответы в порядок: ясно, конкретно, без потери деталей.
+Когда закончим - выведи всё в единый список.
+
+Вопросы:
+1. Главная цель на 8 недель (одна, измеримая)
+2. Что обычно откладываю (конкретные действия)
+3. Тон, который меня двигает
+4. Слова/подходы, которые тормозят
+5. Мой рабочий ритм (когда, сколько, как давать задачи)
+6. Как проверять мой прогресс
+7. Мой контекст (ниша, опыт, ресурсы, ограничения)
+8. Мои паттерны саботажа
+9. Признаки того, что всё идёт правильно
+10. Что ментор НЕ должен делать</div>
+
+        <h3>Шаг 3: Сгенерируйте руководство</h3>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyBlock(this)">Копировать</button>Создай руководство для AI-ментора на основе моих ответов.
+Формат: системный промт, готовый к вставке в начало диалога или в настройки проекта.
+
+Мои ответы:
+1. Цель: <span class="template-field">[вставить]</span>
+2. Что откладываю: <span class="template-field">[вставить]</span>
+3. Тон: <span class="template-field">[вставить]</span>
+4. Триггеры: <span class="template-field">[вставить]</span>
+5. Рабочий ритм: <span class="template-field">[вставить]</span>
+6. Проверка прогресса: <span class="template-field">[вставить]</span>
+7. Контекст: <span class="template-field">[вставить]</span>
+8. Паттерны саботажа: <span class="template-field">[вставить]</span>
+9. Признаки успеха: <span class="template-field">[вставить]</span>
+10. Запретные зоны: <span class="template-field">[вставить]</span>
+
+Правила для руководства:
+- Ты - ментор, не терапевт и не друг. Твоя задача - вести к результату.
+- Будь конкретным: задачи, дедлайны, проверка.
+- Лови паттерны саботажа и называй их прямо.
+- Не мотивируй — структурируй. Не вдохновляй — спрашивай «что конкретно ты сделаешь сегодня?»
+- Если пользователь уходит от задачи — верни к ней.
+- Один вопрос за раз. Короткие ответы. Без воды.</div>
+
+        <h3>Шаг 4: Начните работу</h3>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyBlock(this)">Копировать</button>Вот моё руководство для AI-ментора. Изучи его и следуй.
+
+<span class="template-field">[ВСТАВИТЬ руководство]</span>
+
+Давай начнём. Какой у меня план на сегодня?</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DOWNLOAD -->
+  <div class="download-section reveal">
+    <button class="download-btn" onclick="window.print()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Скачать PDF
+    </button>
+  </div>
+
+</div>
+
+<script>
+function toggleCard(header) {
+  const card = header.closest('.prompt-card');
+  card.classList.toggle('open');
+}
+
+function copyBlock(btn) {
+  const block = btn.closest('.code-block');
+  const text = block.textContent.replace('Копировать', '').trim()
+    .replace(/\[вставить\]/g, '[вставить]')
+    .replace(/\[ваш промпт с контекстом\]/g, '[ваш промпт с контекстом]')
+    .replace(/\[ВСТАВИТЬ руководство\]/g, '[ВСТАВИТЬ руководство]');
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Готово!';
+    setTimeout(() => btn.textContent = 'Копировать', 1500);
+  });
+}
+
+// Scroll reveal
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), i * 80);
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.12 });
+reveals.forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
