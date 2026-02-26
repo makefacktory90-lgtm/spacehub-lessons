@@ -1,0 +1,1699 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 4 — Council Bot: мультиагентная система решений | SpaceHub</title>
+<meta property="og:type" content="website">
+<meta property="og:title" content="SpaceHub: собираем AI-агентов — Урок 4">
+<meta property="og:description" content="Запись занятия с таймкодами и конспектом">
+<meta property="og:image" content="https://img.youtube.com/vi/KMbDtrJYuYM/maxresdefault.jpg">
+<meta property="og:url" content="https://makefacktory90-lgtm.github.io/spacehub-lessons/lesson-05.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="referrer" content="origin">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0a0a0f;
+  --surface: #12121a;
+  --card: #1a1a28;
+  --text: #e8e6f0;
+  --text-dim: #8a87a0;
+  --accent-1: #ff3cac;
+  --accent-2: #00f5d4;
+  --accent-3: #fee440;
+  --accent-4: #7b61ff;
+  --gradient-hot: linear-gradient(135deg, #ff3cac, #ff6b35, #fee440);
+  --gradient-cool: linear-gradient(135deg, #7b61ff, #00f5d4);
+  --gradient-mesh: radial-gradient(ellipse at 20% 50%, rgba(123,97,255,0.15) 0%, transparent 50%),
+                   radial-gradient(ellipse at 80% 20%, rgba(255,60,172,0.12) 0%, transparent 50%),
+                   radial-gradient(ellipse at 60% 80%, rgba(0,245,212,0.1) 0%, transparent 50%);
+  --font-display: 'Unbounded', sans-serif;
+  --font-body: 'Manrope', sans-serif;
+  --correct: #00f5d4;
+  --wrong: #ff3cac;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ====== NAV ====== */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 1.2rem 2.5rem;
+  display: flex; justify-content: space-between; align-items: center;
+  backdrop-filter: blur(20px);
+  background: rgba(10,10,15,0.7);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.logo {
+  font-family: var(--font-display); font-weight: 900; font-size: 1.2rem;
+  background: var(--gradient-hot);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  text-decoration: none;
+}
+
+.nav-links { display: flex; gap: 2rem; list-style: none; }
+.nav-links a {
+  color: var(--text-dim); text-decoration: none; font-size: 0.85rem;
+  font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase;
+  transition: color 0.3s;
+}
+.nav-links a:hover { color: var(--accent-2); }
+
+.nav-lesson {
+  font-size: 0.8rem; color: var(--text-dim);
+  padding: 0.4rem 1rem; border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 100px;
+}
+
+.hamburger { display: none; background: none; border: none; cursor: pointer; }
+.hamburger span { display: block; width: 24px; height: 2px; background: var(--text); margin: 5px 0; transition: 0.3s; }
+
+/* ====== HERO ====== */
+.hero {
+  min-height: 70vh;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 8rem 2.5rem 4rem;
+  position: relative; overflow: hidden;
+}
+.hero::before {
+  content: ''; position: absolute; inset: 0;
+  background: var(--gradient-mesh); z-index: 0;
+}
+
+.hero-orb { position: absolute; border-radius: 50%; filter: blur(80px); animation: float 8s ease-in-out infinite; }
+.hero-orb--1 { width: 500px; height: 500px; background: rgba(255,60,172,0.15); top: -10%; right: -5%; }
+.hero-orb--2 { width: 400px; height: 400px; background: rgba(0,245,212,0.1); bottom: -15%; left: 10%; animation-delay: -3s; }
+.hero-orb--3 { width: 300px; height: 300px; background: rgba(123,97,255,0.12); top: 30%; left: 40%; animation-delay: -5s; }
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -20px) scale(1.05); }
+  66% { transform: translate(-20px, 15px) scale(0.95); }
+}
+
+.hero-content { position: relative; z-index: 1; max-width: 900px; }
+
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.5rem 1.2rem;
+  border: 1px solid rgba(0,245,212,0.3); border-radius: 100px;
+  font-size: 0.8rem; font-weight: 600; color: var(--accent-2);
+  margin-bottom: 2rem; letter-spacing: 0.08em; text-transform: uppercase;
+  animation: fadeInUp 0.8s ease-out;
+}
+.hero-tag::before {
+  content: ''; width: 6px; height: 6px;
+  background: var(--accent-2); border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.5); }
+}
+
+.hero h1 {
+  font-family: var(--font-display); font-weight: 900;
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  line-height: 1.1; margin-bottom: 1.5rem;
+  animation: fadeInUp 0.8s ease-out 0.15s both;
+}
+.hero h1 .highlight {
+  background: var(--gradient-hot);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+.hero-sub {
+  font-size: 1.15rem; color: var(--text-dim); max-width: 600px;
+  line-height: 1.7; margin-bottom: 2rem;
+  animation: fadeInUp 0.8s ease-out 0.3s both;
+}
+
+.hero-meta {
+  display: flex; gap: 2rem; flex-wrap: wrap;
+  animation: fadeInUp 0.8s ease-out 0.45s both;
+}
+.hero-meta-item {
+  display: flex; align-items: center; gap: 0.5rem;
+  color: var(--text-dim); font-size: 0.9rem;
+}
+.hero-meta-item svg { opacity: 0.6; }
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ====== SECTIONS ====== */
+section { padding: 5rem 2.5rem; position: relative; }
+
+.section-label {
+  display: inline-block; font-family: var(--font-display);
+  font-size: 0.7rem; font-weight: 700;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--accent-1); margin-bottom: 1rem;
+}
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+  font-weight: 900; line-height: 1.15; margin-bottom: 1.5rem;
+}
+
+.content-wrap { max-width: 900px; margin: 0 auto; }
+
+/* ====== TOC ====== */
+.toc-grid {
+  display: flex; flex-direction: column; gap: 0.5rem; margin-top: 2rem;
+}
+.toc-item {
+  display: flex; align-items: center; gap: 1.2rem;
+  padding: 1.2rem 1.5rem;
+  background: var(--card);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 16px;
+  text-decoration: none; color: var(--text);
+  transition: transform 0.3s, border-color 0.3s, background 0.3s;
+}
+.toc-item:hover {
+  transform: translateX(6px);
+  border-color: rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.03);
+}
+.toc-number {
+  font-family: var(--font-display); font-weight: 900; font-size: 1.3rem;
+  background: var(--gradient-cool);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  min-width: 40px;
+}
+.toc-text { flex: 1; display: flex; flex-direction: column; gap: 0.2rem; }
+.toc-title { font-weight: 600; font-size: 1rem; }
+.toc-time { font-size: 0.78rem; color: var(--text-dim); }
+.toc-item svg { color: var(--text-dim); transition: transform 0.3s; }
+.toc-item:hover svg { transform: translateX(4px); color: var(--accent-2); }
+
+/* ====== TIMESTAMPS ====== */
+.ts-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 0.6rem; margin-top: 2rem;
+}
+.ts-item {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 0.8rem 1.2rem;
+  background: var(--card);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 12px;
+  transition: border-color 0.3s;
+}
+.ts-item:hover { border-color: rgba(0,245,212,0.2); }
+.ts-time {
+  font-family: var(--font-display); font-weight: 700; font-size: 0.85rem;
+  color: var(--accent-2);
+  background: rgba(0,245,212,0.08);
+  border: 1px solid rgba(0,245,212,0.15);
+  border-radius: 8px;
+  padding: 0.3rem 0.7rem;
+  cursor: pointer; white-space: nowrap;
+  transition: background 0.3s;
+}
+.ts-time:hover { background: rgba(0,245,212,0.15); }
+.ts-label { font-size: 0.9rem; color: var(--text-dim); }
+
+/* ====== TOPIC SECTIONS ====== */
+.topic-section { border-bottom: 1px solid rgba(255,255,255,0.04); }
+.topic-inner { max-width: 900px; margin: 0 auto; }
+.topic-header {
+  display: flex; align-items: center; gap: 1rem; margin-bottom: 1.2rem;
+}
+.topic-number {
+  font-family: var(--font-display); font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  padding: 0.35rem 1rem; border-radius: 100px;
+}
+.topic-number.accent-1 { color: var(--accent-1); background: rgba(255,60,172,0.1); }
+.topic-number.accent-2 { color: var(--accent-2); background: rgba(0,245,212,0.1); }
+.topic-number.accent-3 { color: var(--accent-3); background: rgba(254,228,64,0.1); }
+.topic-number.accent-4 { color: var(--accent-4); background: rgba(123,97,255,0.1); }
+
+.topic-ts {
+  font-family: var(--font-display); font-size: 0.75rem;
+  color: var(--text-dim); opacity: 0.7;
+}
+
+.topic-desc {
+  color: var(--text-dim); font-size: 1.05rem; line-height: 1.8;
+  margin-bottom: 1.5rem;
+}
+
+.key-points {
+  list-style: none; display: flex; flex-direction: column; gap: 0.7rem;
+}
+.key-points li {
+  position: relative; padding-left: 1.5rem;
+  color: var(--text); font-size: 0.95rem; line-height: 1.6;
+}
+.key-points li::before {
+  content: '';
+  position: absolute; left: 0; top: 0.55rem;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--gradient-cool);
+}
+
+/* ====== QUIZ ====== */
+.quiz-grid {
+  display: flex; flex-direction: column; gap: 1rem; margin-top: 2rem;
+}
+.quiz-card {
+  background: var(--card);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 20px; overflow: hidden;
+  transition: border-color 0.3s;
+}
+.quiz-card:hover { border-color: rgba(255,255,255,0.1); }
+
+.quiz-q-header {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 1.5rem 1.8rem; cursor: pointer;
+  transition: background 0.3s;
+}
+.quiz-q-header:hover { background: rgba(255,255,255,0.02); }
+
+.quiz-q-num {
+  font-family: var(--font-display); font-weight: 900; font-size: 1.1rem;
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 12px;
+  background: rgba(123,97,255,0.12); color: var(--accent-4);
+  flex-shrink: 0;
+}
+.quiz-q-text { flex: 1; font-weight: 600; font-size: 1rem; }
+.quiz-chevron {
+  color: var(--text-dim); transition: transform 0.3s; flex-shrink: 0;
+}
+.quiz-card.open .quiz-chevron { transform: rotate(180deg); }
+
+.quiz-body {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.4s ease;
+}
+.quiz-card.open .quiz-body { max-height: 600px; }
+
+.quiz-options {
+  display: flex; flex-direction: column; gap: 0.5rem;
+  padding: 0 1.8rem 1.5rem;
+}
+.quiz-option {
+  display: flex; align-items: center; gap: 0.8rem;
+  padding: 0.9rem 1.2rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  color: var(--text); font-family: var(--font-body); font-size: 0.92rem;
+  cursor: pointer; text-align: left; width: 100%;
+  transition: all 0.3s;
+}
+.quiz-option:hover { border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); }
+
+.quiz-option-letter {
+  font-family: var(--font-display); font-weight: 700; font-size: 0.8rem;
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px; background: rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+
+.quiz-option.correct {
+  border-color: var(--correct); background: rgba(0,245,212,0.08);
+}
+.quiz-option.correct .quiz-option-letter { background: var(--correct); color: #0a0a0f; }
+
+.quiz-option.wrong {
+  border-color: var(--wrong); background: rgba(255,60,172,0.08);
+}
+.quiz-option.wrong .quiz-option-letter { background: var(--wrong); color: #0a0a0f; }
+
+.quiz-option.disabled { pointer-events: none; opacity: 0.6; }
+.quiz-option.correct.disabled { opacity: 1; }
+
+.quiz-explanation {
+  margin: 0 1.8rem 1.5rem;
+  padding: 1rem 1.2rem;
+  background: rgba(123,97,255,0.08);
+  border-left: 3px solid var(--accent-4);
+  border-radius: 0 12px 12px 0;
+  font-size: 0.9rem; color: var(--text-dim); line-height: 1.6;
+}
+
+/* ====== GLOSSARY ====== */
+.glossary-table {
+  width: 100%; margin-top: 2rem;
+  border-collapse: separate; border-spacing: 0 0.5rem;
+}
+.glossary-table tr {
+  background: var(--card);
+  transition: transform 0.3s;
+}
+.glossary-table tr:hover { transform: translateX(4px); }
+
+.glossary-table td {
+  padding: 1.2rem 1.5rem;
+  border: 1px solid rgba(255,255,255,0.05);
+  font-size: 0.95rem;
+}
+.glossary-table td:first-child {
+  border-radius: 14px 0 0 14px;
+  border-right: none;
+}
+.glossary-table td:last-child {
+  border-radius: 0 14px 14px 0;
+  border-left: none;
+}
+
+.gl-term {
+  font-family: var(--font-display); font-weight: 700; font-size: 0.95rem;
+  color: var(--accent-2); white-space: nowrap; width: 200px;
+}
+.gl-def { color: var(--text-dim); line-height: 1.6; }
+
+/* ====== VIDEO PLAYER ====== */
+.video-section {
+  padding: 0 2.5rem 3rem;
+  position: relative;
+}
+.video-wrap {
+  max-width: 900px; margin: 0 auto;
+  border-radius: 20px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--card);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+.video-container {
+  position: relative; width: 100%; padding-bottom: 56.25%; height: 0;
+}
+.video-container iframe {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+}
+
+/* ====== HOMEWORK ====== */
+.hw-grid {
+  display: flex; flex-direction: column; gap: 1.2rem; margin-top: 2rem;
+}
+.hw-card {
+  background: var(--card);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 20px;
+  padding: 2rem 2rem;
+  transition: border-color 0.3s;
+}
+.hw-card:hover { border-color: rgba(0,245,212,0.15); }
+.hw-card-header {
+  display: flex; align-items: center; gap: 1rem;
+  margin-bottom: 1rem;
+}
+.hw-num {
+  font-family: var(--font-display); font-weight: 900; font-size: 1.1rem;
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 12px; flex-shrink: 0;
+}
+.hw-num.n1 { background: rgba(255,60,172,0.12); color: var(--accent-1); }
+.hw-num.n2 { background: rgba(0,245,212,0.12); color: var(--accent-2); }
+.hw-num.n3 { background: rgba(254,228,64,0.12); color: var(--accent-3); }
+.hw-num.n4 { background: rgba(123,97,255,0.12); color: var(--accent-4); }
+.hw-title { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; }
+.hw-desc {
+  color: var(--text-dim); font-size: 0.95rem; line-height: 1.8;
+}
+.hw-check {
+  display: flex; align-items: center; gap: 0.6rem;
+  margin-top: 1rem; padding: 0.7rem 1rem;
+  background: rgba(0,245,212,0.05);
+  border: 1px solid rgba(0,245,212,0.1);
+  border-radius: 10px;
+  font-size: 0.85rem; color: var(--accent-2);
+  cursor: pointer; transition: background 0.3s;
+}
+.hw-check:hover { background: rgba(0,245,212,0.1); }
+.hw-check input[type="checkbox"] { accent-color: var(--accent-2); width: 16px; height: 16px; }
+
+
+/* ====== ARCHITECTURE ====== */
+.arch-schema {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 28px 32px;
+  margin: 24px 0;
+  font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+  font-size: 0.8rem;
+  line-height: 1.8;
+  white-space: pre;
+  overflow-x: auto;
+  color: var(--text-dim);
+}
+
+.arch-prompt {
+  background: rgba(123,97,255,0.06);
+  border-left: 3px solid var(--accent-4);
+  border-radius: 0 14px 14px 0;
+  padding: 24px 28px;
+  margin: 20px 0;
+}
+.arch-prompt .prompt-label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent-4);
+  margin-bottom: 12px;
+}
+.arch-prompt code {
+  display: block;
+  white-space: pre-wrap;
+  font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+  font-size: 0.82rem;
+  line-height: 1.8;
+  color: var(--text-dim);
+}
+
+.arch-role {
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 24px;
+  margin: 16px 0;
+  background: var(--card);
+}
+.arch-role h4 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.arch-role-tag {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 12px;
+}
+.arch-role-tag.tag-1 { background: rgba(255,60,172,0.15); color: var(--accent-1); }
+.arch-role-tag.tag-2 { background: rgba(0,245,212,0.15); color: var(--accent-2); }
+.arch-role-tag.tag-3 { background: rgba(254,228,64,0.15); color: var(--accent-3); }
+
+.arch-use-cases {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 24px 0;
+}
+.arch-use-case {
+  background: var(--card);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 14px;
+  padding: 20px;
+}
+.arch-use-case h4 {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.arch-use-case p {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin-bottom: 0;
+}
+
+.arch-highlight {
+  background: rgba(254,228,64,0.08);
+  border: 1px solid rgba(254,228,64,0.15);
+  border-radius: 14px;
+  padding: 20px 24px;
+  margin: 24px 0;
+  font-size: 0.92rem;
+  color: var(--text);
+  line-height: 1.7;
+}
+
+@media (max-width: 900px) {
+  .arch-use-cases { grid-template-columns: 1fr; }
+  .arch-schema { font-size: 0.7rem; padding: 20px 16px; }
+}
+
+/* ====== FOOTER ====== */
+footer {
+  max-width: 900px; margin: 0 auto; padding: 3rem 2.5rem;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 1.5rem;
+}
+.footer-left { display: flex; flex-direction: column; gap: 0.5rem; }
+.footer-brand {
+  font-family: var(--font-display); font-weight: 900; font-size: 1rem;
+  background: var(--gradient-hot);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.footer-tagline { font-size: 0.85rem; color: var(--text-dim); font-style: italic; }
+.footer-nav { display: flex; gap: 1.5rem; }
+.footer-nav a {
+  font-size: 0.85rem; color: var(--text-dim); text-decoration: none;
+  transition: color 0.3s;
+}
+.footer-nav a:hover { color: var(--accent-2); }
+
+/* ====== SCROLL ANIMATIONS ====== */
+.reveal {
+  opacity: 0; transform: translateY(40px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 900px) {
+  nav { padding: 1rem 1.5rem; }
+  .nav-links { display: none; }
+  .hamburger { display: block; }
+  section { padding: 3.5rem 1.5rem; }
+  .ts-grid { grid-template-columns: 1fr; }
+  .gl-term { white-space: normal; width: auto; }
+  .glossary-table td { display: block; border-radius: 0; border: none; }
+  .glossary-table td:first-child { padding-bottom: 0.3rem; border-radius: 14px 14px 0 0; }
+  .glossary-table td:last-child { padding-top: 0; border-radius: 0 0 14px 14px; }
+  .glossary-table tr { display: block; border-radius: 14px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 0.5rem; }
+  footer { flex-direction: column; text-align: center; }
+}
+
+@media (max-width: 600px) {
+  .hero { padding: 7rem 1.5rem 3rem; }
+  .hero-meta { gap: 1rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="logo" href="https://iraai.ru/spacehub/#cockpit">&larr; SPACEHUB</a>
+  <ul class="nav-links">
+    <li><a href="#toc">Содержание</a></li>
+    <li><a href="#timestamps">Таймкоды</a></li>
+    <li><a href="#architecture">Архитектура</a></li>
+    <li><a href="#quiz">Квиз</a></li>
+    <li><a href="#glossary">Глоссарий</a></li>
+    <li><a href="#homework">Домашка</a></li>
+  </ul>
+  <span class="nav-lesson">Урок 4 / 4</span>
+  <button class="hamburger" aria-label="Меню">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-orb hero-orb--1"></div>
+  <div class="hero-orb hero-orb--2"></div>
+  <div class="hero-orb hero-orb--3"></div>
+  <div class="hero-content">
+    <div class="hero-tag">Урок 4 из 4</div>
+    <h1>Council Bot: <span class="highlight">мультиагентная</span> система решений</h1>
+    <p class="hero-sub">Собираем Council Bot от идеи до реализации: оркестратор, три советника, раунды критики и защиты. Настраиваем подписки, реферальную программу и тестируем в песочнице.</p>
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        26.02.2026
+      </div>
+      <div class="hero-meta-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        8 тем
+      </div>
+      <div class="hero-meta-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        SpaceHub: собираем AI-агентов
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VIDEO PLAYER -->
+<section class="video-section">
+  <div class="video-wrap reveal">
+    <div class="video-container">
+      <iframe id="yt-player" src="https://www.youtube-nocookie.com/embed/KMbDtrJYuYM?rel=0&modestbranding=1&color=white&start=26"
+        frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen style="border:none;display:block;position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+    </div>
+  </div>
+</section>
+
+<!-- TOC -->
+<section id="toc">
+  <div class="content-wrap">
+    <span class="section-label reveal">Содержание</span>
+    <h2 class="section-title reveal">О чём этот урок</h2>
+    <div class="toc-grid">
+      <a href="#topic-0" class="toc-item reveal">
+        <span class="toc-number">01</span>
+        <span class="toc-text">
+          <span class="toc-title">Архитектура Council Bot</span>
+          <span class="toc-time">00:00</span>
+        </span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <a href="#topic-1" class="toc-item reveal">
+        <span class="toc-number">02</span>
+        <span class="toc-text">
+          <span class="toc-title">Сборка бота в AI from Space</span>
+          <span class="toc-time">06:36</span>
+        </span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <a href="#topic-2" class="toc-item reveal">
+        <span class="toc-number">03</span>
+        <span class="toc-text">
+          <span class="toc-title">Тестирование: три раунда принятия решений</span>
+          <span class="toc-time">24:35</span>
+        </span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <a href="#topic-3" class="toc-item reveal">
+        <span class="toc-number">04</span>
+        <span class="toc-text">
+          <span class="toc-title">Монетизация: подписки и расчёт экономики</span>
+          <span class="toc-time">49:43</span>
+        </span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <a href="#topic-4" class="toc-item reveal">
+        <span class="toc-number">05</span>
+        <span class="toc-text">
+          <span class="toc-title">Реферальная программа и Telegram Stars</span>
+          <span class="toc-time">55:09</span>
+        </span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <a href="#topic-5" class="toc-item reveal">
+        <span class="toc-number">06</span>
+        <span class="toc-text">
+          <span class="toc-title">Песочница: тестирование ассистентов</span>
+          <span class="toc-time">1:05:06</span>
+        </span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <a href="#topic-6" class="toc-item reveal">
+        <span class="toc-number">07</span>
+        <span class="toc-text">
+          <span class="toc-title">Q&A: память, календарь, API, роли</span>
+          <span class="toc-time">1:13:00</span>
+        </span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <a href="#topic-7" class="toc-item reveal">
+        <span class="toc-number">08</span>
+        <span class="toc-text">
+          <span class="toc-title">Завершение и анонс финального урока</span>
+          <span class="toc-time">1:32:00</span>
+        </span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- TIMESTAMPS -->
+<section id="timestamps">
+  <div class="content-wrap">
+    <span class="section-label reveal">Таймкоды</span>
+    <h2 class="section-title reveal">Навигация по уроку</h2>
+    <div class="ts-grid">
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="0">00:00</button>
+        <span class="ts-label">Начало урока, приветствие и план</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="53">00:53</button>
+        <span class="ts-label">Денис: план на сегодня, бот-Council Bot от идеи до реализации</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="162">02:42</button>
+        <span class="ts-label">Ира: почему именно такой бот, запросы участников</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="227">03:47</button>
+        <span class="ts-label">Архитектура: оркестратор + три советника</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="396">06:36</button>
+        <span class="ts-label">Создание ассистента Council Bot в AI from Space</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="424">07:04</button>
+        <span class="ts-label">Выбор модели: Grok 4.1 для оркестратора</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="453">07:33</button>
+        <span class="ts-label">Ввод системного промта оркестратора</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="584">09:44</button>
+        <span class="ts-label">Надежда: зачем отдельные ассистенты vs вызов LLM</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="720">12:00</button>
+        <span class="ts-label">Выбор моделей: Claude и Gemini Pro для советников</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="915">15:15</button>
+        <span class="ts-label">Подключение инструментов вызова ассистентов</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="993">16:33</button>
+        <span class="ts-label">Название для вас, инструкция для ассистента</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="1157">19:17</button>
+        <span class="ts-label">Шаблон брифа и раунды 1-2-3 в промте</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="1218">20:18</button>
+        <span class="ts-label">Дата истечения в ячейке памяти</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="1475">24:35</button>
+        <span class="ts-label">Первый тест: &laquo;Что самое вредное для здоровья?&raquo;</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="1700">28:20</button>
+        <span class="ts-label">Анализ результата: 60 токенов, синтез ответа</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="2008">33:28</button>
+        <span class="ts-label">Второй тест: &laquo;Чему стоит научиться в 2026?&raquo;</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="2227">37:07</button>
+        <span class="ts-label">Вопрос Андрея: сброс диалога, команда /new</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="2695">44:55</button>
+        <span class="ts-label">Третий тест: &laquo;Как стать счастливым?&raquo;</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="2983">49:43</button>
+        <span class="ts-label">Настройка подписок: расчёт себестоимости</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="3154">52:34</button>
+        <span class="ts-label">Лимиты для бесплатных пользователей</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="3309">55:09</button>
+        <span class="ts-label">Реферальная программа: включение и настройка</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="3805">1:03:25</button>
+        <span class="ts-label">Telegram Stars: 100% звёзд создателю, вывод</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="3906">1:05:06</button>
+        <span class="ts-label">Песочница: параллельные запросы, клонирование</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="4465">1:14:25</button>
+        <span class="ts-label">Google Calendar: интеграция (бета)</span>
+      </div>
+      <div class="ts-item reveal">
+        <button class="ts-time" data-seconds="4684">1:18:04</button>
+        <span class="ts-label">Инструмент API-сервиса: подключение CRM</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TOPICS -->
+
+<section id="topic-0" class="topic-section">
+  <div class="topic-inner reveal">
+    <div class="topic-header">
+      <span class="topic-number accent-1">Тема 01</span>
+      <span class="topic-ts">00:00</span>
+    </div>
+    <h2 class="section-title">Архитектура Council Bot</h2>
+    <p class="topic-desc">Денис и Ира представляют концепцию мультиагентного Council Bot, который оркестрирует работу трёх независимых советников для принятия сложных решений. Архитектуру продумала Ира с помощью Claude, а Денис показывает, как её собрать на платформе.</p>
+    <ul class="key-points">
+      <li>Оркестратор управляет процессом, но не решает задачи сам: он распределяет работу между советниками</li>
+      <li>Три роли: Аналитик (логика и структура), Креативщик (нестандартные решения), Скептик (поиск слабых мест)</li>
+      <li>Процесс: бриф от пользователя &rarr; три независимых решения &rarr; раунд критики &rarr; раунд защиты &rarr; финальный синтез</li>
+      <li>Бот создан по запросам участников курса (Андрей и Надежда)</li>
+      <li>Для оркестратора достаточно недорогой модели (Grok), т.к. он координирует, а не синтезирует</li>
+    </ul>
+  </div>
+</section>
+
+<section id="topic-1" class="topic-section">
+  <div class="topic-inner reveal">
+    <div class="topic-header">
+      <span class="topic-number accent-2">Тема 02</span>
+      <span class="topic-ts">06:36</span>
+    </div>
+    <h2 class="section-title">Сборка бота в AI from Space</h2>
+    <p class="topic-desc">Денис пошагово демонстрирует создание мультиагентной системы: сначала создаёт оркестратора, затем трёх отдельных ассистентов и подключает их как инструменты. Каждый советник получает свой промт и модель.</p>
+    <ul class="key-points">
+      <li>Каждый советник создаётся как отдельный ассистент со своим промтом и моделью</li>
+      <li>Альтернатива: &laquo;Вызов LLM-модели&raquo; вместо отдельных ассистентов (легче, но Денис обнаружил баг)</li>
+      <li>Название инструмента для человека, инструкция для ассистента: именно на неё ИИ обращает внимание</li>
+      <li>Шаблоны для каждого раунда (бриф, критика, защита) размещаются в памяти оркестратора</li>
+      <li>Выбор моделей: Claude для аналитики, Gemini для креатива, Grok для оркестрации</li>
+      <li>Вся сборка заняла около 25 минут, включая объяснения</li>
+    </ul>
+  </div>
+</section>
+
+<section id="topic-2" class="topic-section">
+  <div class="topic-inner reveal">
+    <div class="topic-header">
+      <span class="topic-number accent-3">Тема 03</span>
+      <span class="topic-ts">24:35</span>
+    </div>
+    <h2 class="section-title">Тестирование Council Bot: три раунда принятия решений</h2>
+    <p class="topic-desc">Денис проводит три тестовых запроса, демонстрируя работу всей цепочки: формирование брифа, параллельные запросы к советникам, раунды критики и защиты, финальный синтез. Участники обсуждают качество ответов и поведение моделей.</p>
+    <ul class="key-points">
+      <li>Тест 1 (&laquo;Что вредно для здоровья&raquo;): оркестратор использовал около 60 токенов, финальный ответ про загрязнение воздуха</li>
+      <li>Тест 2 (&laquo;Чему научиться в 2026&raquo;): рекомендации по климат-технологиям и личному бренду</li>
+      <li>Тест 3 (&laquo;Как стать счастливым&raquo;): глубокий ответ про субъектность через несовершенство</li>
+      <li>Новый тред не наследует историю предыдущего: подтверждается через счётчик токенов</li>
+      <li>Команда /new в Telegram сбрасывает диалог и начинает новый тред</li>
+      <li>Надежда делится опытом: в перекрёстных дискуссиях GPT часто выигрывает на сложной аналитике</li>
+    </ul>
+  </div>
+</section>
+
+<section id="topic-3" class="topic-section">
+  <div class="topic-inner reveal">
+    <div class="topic-header">
+      <span class="topic-number accent-4">Тема 04</span>
+      <span class="topic-ts">49:43</span>
+    </div>
+    <h2 class="section-title">Монетизация: подписки и расчёт экономики</h2>
+    <p class="topic-desc">Денис показывает полный цикл настройки платных подписок в AI from Space: расчёт себестоимости, установка цены, настройка лимитов для бесплатных и платных пользователей. Разбор формулы маржинальности.</p>
+    <ul class="key-points">
+      <li>Формула: 50 кредитов/ответ &times; 10 ответов/день = 500 кредитов/день &asymp; 100 руб/день &asymp; 3000 руб/мес себестоимость</li>
+      <li>Подписка 3000 руб/мес с автопродлением: гарантированная работа в плюс</li>
+      <li>Лимит бесплатного доступа: по кредитам (65), не по сообщениям, чтобы пользователь успел получить демо</li>
+      <li>При покупке премиума лимит увеличивается до 500 кредитов/день</li>
+      <li>Команда /premium в Telegram показывает пользователю доступные подписки</li>
+      <li>Важно продумать онбординг: приветственное сообщение должно объяснять ценность бота</li>
+    </ul>
+  </div>
+</section>
+
+<section id="topic-4" class="topic-section">
+  <div class="topic-inner reveal">
+    <div class="topic-header">
+      <span class="topic-number accent-1">Тема 05</span>
+      <span class="topic-ts">55:09</span>
+    </div>
+    <h2 class="section-title">Реферальная программа и Telegram Stars</h2>
+    <p class="topic-desc">Денис демонстрирует встроенную реферальную систему AI from Space и объясняет механику Telegram Stars как валюты для оплаты ботов. Разбирает варианты вывода средств и юридические моменты.</p>
+    <ul class="key-points">
+      <li>Реферальная программа включается одной галочкой: у каждого реферала свой код и ссылка</li>
+      <li>Статистика доступна по команде /referral, уведомление при регистрации нового пользователя</li>
+      <li>Telegram Stars: 100% звёзд идут создателю бота, вывод через крипту или покупку рекламы в Telegram</li>
+      <li>Для работы с рублями нужен договор с платформой (80/20 в пользу создателя), юрлицо или самозанятость</li>
+      <li>Звёзды работают в России: пользователи реально платят ими за подписки</li>
+      <li>Условия реферальной программы создатель задаёт сам, платформа не занимается выплатами</li>
+    </ul>
+  </div>
+</section>
+
+<section id="topic-5" class="topic-section">
+  <div class="topic-inner reveal">
+    <div class="topic-header">
+      <span class="topic-number accent-2">Тема 06</span>
+      <span class="topic-ts">1:05:06</span>
+    </div>
+    <h2 class="section-title">Песочница: тестирование и отладка ассистентов</h2>
+    <p class="topic-desc">Денис демонстрирует инструмент &laquo;Песочница&raquo; для тестирования ассистентов: параллельные запросы, смена моделей, клонирование сценариев и сравнение результатов side by side.</p>
+    <ul class="key-points">
+      <li>Песочница позволяет запускать параллельные запросы одновременно для сравнения</li>
+      <li>Можно менять модель и промт для отдельного прогона, не затрагивая основные настройки</li>
+      <li>Клонирование сценария: один диалог можно скопировать и запустить с другой моделью</li>
+      <li>Можно добавлять сообщения от лица ассистента для имитации диалога</li>
+      <li>Если результат устраивает, настройки можно применить ко всему ассистенту одной кнопкой</li>
+      <li>Сценарии сохраняются автоматически, можно группировать в категории</li>
+    </ul>
+  </div>
+</section>
+
+<section id="topic-6" class="topic-section">
+  <div class="topic-inner reveal">
+    <div class="topic-header">
+      <span class="topic-number accent-3">Тема 07</span>
+      <span class="topic-ts">1:13:00</span>
+    </div>
+    <h2 class="section-title">Q&A: память, календарь, API, роли</h2>
+    <p class="topic-desc">Ира зачитывает вопросы, собранные из чата курса, Денис отвечает: про перенос данных между типами памяти, Google Calendar, внешние API, экономию токенов и работу с документами.</p>
+    <ul class="key-points">
+      <li>Перенос данных между постоянной и динамической памятью: ассистент может сделать это сам</li>
+      <li>Google Calendar в бета-режиме, инструменты Google заблокированы для дефолтной роли</li>
+      <li>Для экономии токенов: промт &laquo;отвечай кратко&raquo; + модель Claude Haiku + креативность в ноль</li>
+      <li>Внешние API подключаются через инструмент &laquo;Вызов API-сервиса&raquo; с авторизацией по ключу</li>
+      <li>Бот в Telegram-группу пока нельзя добавить, но это есть в роадмапе</li>
+      <li>Google Drive: можно читать и заполнять документы и таблицы напрямую</li>
+    </ul>
+  </div>
+</section>
+
+<section id="topic-7" class="topic-section">
+  <div class="topic-inner reveal">
+    <div class="topic-header">
+      <span class="topic-number accent-4">Тема 08</span>
+      <span class="topic-ts">1:32:00</span>
+    </div>
+    <h2 class="section-title">Завершение и анонс финального урока</h2>
+    <p class="topic-desc">Ира подводит итоги четвёртого урока и анонсирует воскресный финальный урок: демо-день, где участники показывают своих ботов и получают обратную связь.</p>
+    <ul class="key-points">
+      <li>Следующий (финальный) урок в воскресенье: демо-день с показом ботов</li>
+      <li>Ира приглашает желающих выступить и обещает обратную связь по усилению ботов</li>
+      <li>Ценная цитата из теста Council Bot: &laquo;Счастье в 2026 это не отсутствие проблем, а возвращение субъектности через выбор того, в чём позволяете себе быть несовершенным и медленным&raquo;</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section id="architecture">
+  <div class="content-wrap">
+    <span class="section-label reveal">Архитектура</span>
+    <h2 class="section-title reveal">Council Bot: структура и промты</h2>
+
+    <p class="topic-desc reveal">Полная архитектура мультиагентного бота, который мы собирали на уроке. Один оркестратор раздаёт задание трём агентам с разными ролями. Каждый решает независимо. Потом они видят чужие ответы и критикуют. Потом защищают позиции. Пользователь получает одно финальное решение, прошедшее через управляемый спор.</p>
+
+    <div class="arch-highlight reveal">
+      Это не голосование большинства. Это управляемый конфликт идей, где побеждает аргумент, а не авторитет.
+    </div>
+
+    <h3 class="section-title reveal" style="font-size:1.3rem;margin-top:3rem;">Схема: 4 раунда</h3>
+
+    <div class="arch-schema reveal">
+Пользователь
+    |
+    v
++---------------------------+
+|   ОРКЕСТРАТОР              |   Принимает задачу, формулирует бриф
+|   (Council Master)         |
++-----------+---------------+
+            |
+            |  Раунд 1: НЕЗАВИСИМЫЕ РЕШЕНИЯ
+            |
+    +-------+-------+
+    v       v       v
+  [A1]    [A2]    [A3]         Каждый решает НЕ видя других
+    |       |       |
+    +-------+-------+
+            |
+            |  Раунд 2: ПЕРЕКРЁСТНАЯ КРИТИКА
+            |
+    +-------+-------+
+    v       v       v
+  [A1]    [A2]    [A3]         Каждый видит ВСЕ решения, критикует
+    |       |       |
+    +-------+-------+
+            |
+            |  Раунд 3: ЗАЩИТА И ДОРАБОТКА
+            |
+    +-------+-------+
+    v       v       v
+  [A1]    [A2]    [A3]         Каждый защищает или меняет позицию
+    |       |       |
+    +-------+-------+
+            |
+            v
++---------------------------+
+|   СИНТЕЗАТОР               |   Раунд 4: ФИНАЛЬНЫЙ СИНТЕЗ
+|   (= Оркестратор)          |   Собирает лучшее из всех раундов
++-----------+---------------+
+            |
+            v
+    Финальное решение
+    -> Пользователю</div>
+
+    <h3 class="section-title reveal" style="font-size:1.3rem;margin-top:3rem;">Роли: 3 советника</h3>
+    <p class="topic-desc reveal">Универсальный набор, который работает для 80% случаев. Можно менять роли под задачу.</p>
+
+    <div class="arch-role reveal">
+      <span class="arch-role-tag tag-1">Советник 1</span>
+      <h4>Аналитик (The Analyst)</h4>
+      <p style="color:var(--text-dim);line-height:1.7;">Думает системами, данными, логикой. Ищет доказательства. Не верит на слово. Спрашивает &laquo;а какие данные это подтверждают?&raquo;</p>
+    </div>
+
+    <div class="arch-role reveal">
+      <span class="arch-role-tag tag-2">Советник 2</span>
+      <h4>Креативщик (The Creative)</h4>
+      <p style="color:var(--text-dim);line-height:1.7;">Думает идеями, метафорами, аналогиями из других областей. Ищет неочевидные решения. Спрашивает &laquo;а что если перевернуть задачу?&raquo;</p>
+    </div>
+
+    <div class="arch-role reveal">
+      <span class="arch-role-tag tag-3">Советник 3</span>
+      <h4>Скептик (The Skeptic)</h4>
+      <p style="color:var(--text-dim);line-height:1.7;">Ищет слабые места, риски, контраргументы. Задача: убить плохие идеи до того, как они станут решениями. Спрашивает &laquo;что может пойти не так?&raquo;</p>
+    </div>
+
+    <h3 class="section-title reveal" style="font-size:1.3rem;margin-top:3rem;">Промты</h3>
+
+    <h4 class="reveal" style="margin-top:2rem;font-family:var(--font-display);font-size:0.95rem;">1. Оркестратор (Council Master)</h4>
+    <div class="arch-prompt reveal">
+      <div class="prompt-label">System Prompt</div>
+      <code>Ты — оркестратор Совета. Твоя работа — управлять процессом группового решения задач.
+
+Ты НЕ решаешь задачи сам. Ты управляешь процессом:
+
+1. Получаешь задачу от пользователя
+2. Формулируешь четкий бриф для советников (что решаем, какие ограничения, какой формат ответа нужен)
+3. Передаёшь бриф трём советникам одновременно
+4. После получения независимых решений — передаёшь ВСЕ решения каждому советнику для критики
+5. После критики — передаёшь критику для защиты/доработки
+6. Синтезируешь финальное решение
+
+ПРАВИЛА СИНТЕЗА:
+- Не усредняй. Выбирай сильнейшие аргументы из каждой позиции
+- Если советники согласны — отлично, но проверь: может это groupthink?
+- Если не согласны — это ценно. Покажи пользователю суть разногласия
+- Финальное решение = конкретное действие, не "с одной стороны... с другой..."
+
+ФОРМАТ ФИНАЛЬНОГО ОТВЕТА:
+- Решение (1-3 предложения)
+- Почему именно так (ключевой аргумент)
+- Что было отброшено и почему (1-2 предложения)
+- Риск, который остался (1 предложение)</code>
+    </div>
+
+    <h4 class="reveal" style="margin-top:2rem;font-family:var(--font-display);font-size:0.95rem;">2. Аналитик (The Analyst)</h4>
+    <div class="arch-prompt reveal">
+      <div class="prompt-label">System Prompt — Advisor 1</div>
+      <code>Ты — Аналитик в Совете. Твой метод: логика, структура, данные.
+
+КАК ТЫ ДУМАЕШЬ:
+- Раскладываешь проблему на компоненты
+- Ищешь причинно-следственные связи
+- Требуешь доказательства, а не мнения
+- Строишь аргумент от фактов к выводу
+
+РАУНД 1 (независимое решение):
+- Дай своё решение задачи
+- Объясни логику: почему именно так
+- Укажи, какие данные/факты поддерживают решение
+- Укажи, чего не хватает для уверенности
+
+РАУНД 2 (критика чужих решений):
+- Прочитай решения других советников
+- Найди логические ошибки, необоснованные утверждения
+- Укажи, где вывод не следует из посылок
+- Отметь, если у кого-то есть сильный аргумент, который ты пропустил
+
+РАУНД 3 (защита/доработка):
+- Учти критику. Если она обоснована — измени позицию. Это не слабость
+- Если критика необоснована — защити с аргументами
+- Дай финальную позицию
+
+ВАЖНО: Ты НЕ должен соглашаться ради согласия. Если ты прав — стой на своём с аргументами.</code>
+    </div>
+
+    <h4 class="reveal" style="margin-top:2rem;font-family:var(--font-display);font-size:0.95rem;">3. Креативщик (The Creative)</h4>
+    <div class="arch-prompt reveal">
+      <div class="prompt-label">System Prompt — Advisor 2</div>
+      <code>Ты — Креативщик в Совете. Твой метод: латеральное мышление, аналогии, инверсия.
+
+КАК ТЫ ДУМАЕШЬ:
+- Ищешь аналогии из других областей (как эту задачу решили в кино? в биологии? в архитектуре?)
+- Переворачиваешь задачу: "а что если делать наоборот?"
+- Комбинируешь несочетаемое
+- Думаешь образами и метафорами, потом переводишь в конкретику
+
+РАУНД 1 (независимое решение):
+- Дай решение, которое НЕ является первым очевидным
+- Объясни ход мысли: через какую аналогию/инверсию пришёл
+- Покажи, как неочевидное решение работает на практике
+
+РАУНД 2 (критика чужих решений):
+- Прочитай решения других
+- Проверь: не слишком ли очевидно? Не упущена ли возможность?
+- Предложи, как усилить чужое решение неожиданным элементом
+- Укажи, если решение скучное/шаблонное и почему это проблема
+
+РАУНД 3 (защита/доработка):
+- Учти критику. Если твоё решение нереалистично — приземли его, сохранив суть
+- Если критика "это слишком необычно" — это не аргумент, защищай
+
+ВАЖНО: Твоя ценность — видеть то, что другие не видят. Не скатывайся в банальности.</code>
+    </div>
+
+    <h4 class="reveal" style="margin-top:2rem;font-family:var(--font-display);font-size:0.95rem;">4. Скептик (The Skeptic)</h4>
+    <div class="arch-prompt reveal">
+      <div class="prompt-label">System Prompt — Advisor 3</div>
+      <code>Ты — Скептик в Совете. Твой метод: стресс-тест, поиск уязвимостей, advocatus diaboli.
+
+КАК ТЫ ДУМАЕШЬ:
+- Ищешь, что может пойти не так
+- Проверяешь скрытые допущения
+- Моделируешь worst case
+- Спрашиваешь: "а если это не сработает, что тогда?"
+
+РАУНД 1 (независимое решение):
+- Дай решение, которое МИНИМИЗИРУЕТ РИСК
+- Объясни, какие риски ты видишь в задаче
+- Покажи, как твоё решение их закрывает
+- Укажи, какой риск невозможно закрыть
+
+РАУНД 2 (критика чужих решений):
+- Прочитай решения других
+- Найди скрытые допущения ("это работает, только если...")
+- Смоделируй: что будет, если ключевое условие не выполнится?
+- Оцени worst case каждого решения
+
+РАУНД 3 (защита/доработка):
+- Учти критику. Если тебя убедили, что риск приемлем — прими это
+- Если нет — покажи конкретный сценарий провала
+
+ВАЖНО: Ты НЕ пессимист. Ты реалист, который защищает от катастроф. Разница: пессимист говорит "не делай", скептик говорит "делай, но вот тут подстрахуйся".</code>
+    </div>
+
+    <h4 class="reveal" style="margin-top:2rem;font-family:var(--font-display);font-size:0.95rem;">5. Шаблон брифа (генерирует Оркестратор)</h4>
+    <div class="arch-prompt reveal">
+      <div class="prompt-label">Шаблон брифа для советников</div>
+      <code>ЗАДАЧА: {описание задачи от пользователя}
+
+КОНТЕКСТ: {релевантный контекст, если есть}
+
+ОГРАНИЧЕНИЯ:
+- {ограничение 1}
+- {ограничение 2}
+
+ФОРМАТ ОТВЕТА:
+1. Твоё решение (2-5 предложений)
+2. Главный аргумент ЗА (1-2 предложения)
+3. Главный риск твоего решения (1 предложение)
+4. Уверенность: X/10</code>
+    </div>
+
+    <h4 class="reveal" style="margin-top:2rem;font-family:var(--font-display);font-size:0.95rem;">6. Промт для раунда критики</h4>
+    <div class="arch-prompt reveal">
+      <div class="prompt-label">Шаблон раунда 2</div>
+      <code>Вот решения всех советников:
+
+АНАЛИТИК: {решение 1}
+КРЕАТИВЩИК: {решение 2}
+СКЕПТИК: {решение 3}
+
+Теперь ты в режиме критики. Прочитай ВСЕ решения.
+
+1. Что сильного в каждом? (по 1 предложению)
+2. Что слабого в каждом? (по 1 предложению, с аргументом)
+3. Какое решение ближе к правильному и почему?
+4. Как бы ты изменил своё решение, увидев чужие?</code>
+    </div>
+
+    <h4 class="reveal" style="margin-top:2rem;font-family:var(--font-display);font-size:0.95rem;">7. Промт для раунда защиты</h4>
+    <div class="arch-prompt reveal">
+      <div class="prompt-label">Шаблон раунда 3</div>
+      <code>Вот критика от всех советников:
+
+КРИТИКА АНАЛИТИКА: {критика}
+КРИТИКА КРЕАТИВЩИКА: {критика}
+КРИТИКА СКЕПТИКА: {критика}
+
+Учти всю критику. Дай финальную позицию:
+
+1. Твоё ИТОГОВОЕ решение (с учётом критики)
+2. Что ты изменил и почему
+3. С чем ты НЕ согласен из критики и почему
+4. Итоговая уверенность: X/10</code>
+    </div>
+
+    <h3 class="section-title reveal" style="font-size:1.3rem;margin-top:3rem;">Варианты применения</h3>
+
+    <div class="arch-use-cases reveal">
+      <div class="arch-use-case">
+        <h4>Бизнес-решение</h4>
+        <p>CFO (деньги) + CMO (рынок) + CPO (продукт). Каждый оценивает решение со своей стороны.</p>
+      </div>
+      <div class="arch-use-case">
+        <h4>Контент-совет</h4>
+        <p>Стратег + Копирайтер + Редактор. Тема &rarr; три подхода &rarr; спор &rarr; один пост.</p>
+      </div>
+      <div class="arch-use-case">
+        <h4>Инвест-анализ</h4>
+        <p>Бык + Медведь + Риск-менеджер. Спорят о сделке. Один вердикт.</p>
+      </div>
+      <div class="arch-use-case">
+        <h4>Личные решения</h4>
+        <p>Рационалист + Эмпат + Стоик. Три фокуса на один жизненный выбор.</p>
+      </div>
+      <div class="arch-use-case">
+        <h4>Код-ревью</h4>
+        <p>Архитектор + Безопасник + Перфоманс. Три фокуса на один код.</p>
+      </div>
+      <div class="arch-use-case">
+        <h4>Фактчекер</h4>
+        <p>3 агента проверяют факт с разных сторон: источники, логика, контекст.</p>
+      </div>
+    </div>
+
+    <div class="arch-highlight reveal">
+      <strong>Разные модели = настоящий совет.</strong> Если все три советника на одной модели, у них похожие bias. Если один GPT-4o, один Claude, один Gemini — получается реальное разнообразие мышления. Это и есть &laquo;разные мозги&raquo;.
+    </div>
+
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz">
+  <div class="content-wrap">
+    <span class="section-label reveal">Проверь себя</span>
+    <h2 class="section-title reveal">Квиз по уроку</h2>
+    <div class="quiz-grid">
+
+      <div class="quiz-card reveal">
+        <div class="quiz-q-header" onclick="toggleQuiz(this)">
+          <span class="quiz-q-num">1</span>
+          <span class="quiz-q-text">Какую роль выполняет оркестратор в боте-Council Botе?</span>
+          <svg class="quiz-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="quiz-body">
+          <div class="quiz-options">
+            <button class="quiz-option" data-correct="false" onclick="selectOption(this)">
+              <span class="quiz-option-letter">A</span> Генерирует креативные решения
+            </button>
+            <button class="quiz-option" data-correct="true" onclick="selectOption(this)">
+              <span class="quiz-option-letter">B</span> Управляет процессом и координирует работу советников
+            </button>
+            <button class="quiz-option" data-correct="false" onclick="selectOption(this)">
+              <span class="quiz-option-letter">C</span> Критикует ответы других советников
+            </button>
+            <button class="quiz-option" data-correct="false" onclick="selectOption(this)">
+              <span class="quiz-option-letter">D</span> Анализирует данные и строит отчёты
+            </button>
+          </div>
+          <div class="quiz-explanation" style="display:none">
+            <p>Денис подчеркнул: &laquo;Ты не решаешь задачи сам, ты управляешь процессом.&raquo; Оркестратор формирует бриф, распределяет задачи между советниками и синтезирует финальный ответ.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="quiz-card reveal">
+        <div class="quiz-q-header" onclick="toggleQuiz(this)">
+          <span class="quiz-q-num">2</span>
+          <span class="quiz-q-text">Сколько раундов обсуждения проходит в боте-Council Botе?</span>
+          <svg class="quiz-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="quiz-body">
+          <div class="quiz-options">
+            <button class="quiz-option" data-correct="false" onclick="selectOption(this)">
+              <span class="quiz-option-letter">A</span> Один: независимые мнения
+            </button>
+            <button class="quiz-option" data-correct="false" onclick="selectOption(this)">
+              <span class="quiz-option-letter">B</span> Два: мнения и критика
+            </button>
+            <button class="quiz-option" data-correct="true" onclick="selectOption(this)">
+              <span class="quiz-option-letter">C</span> Три: мнения, критика, защита
+            </button>
+            <button class="quiz-option" data-correct="false" onclick="selectOption(this)">
+              <span class="quiz-option-letter">D</span> Четыре: мнения, критика, защита, голосование
+            </button>
+          </div>
+          <div class="quiz-explanation" style="display:none">
+            <p>Раунд 1 &mdash; независимые решения каждого советника. Раунд 2 &mdash; взаимная критика (каждый видит решения коллег и ищет слабые места). Раунд 3 &mdash; защита и доработка. После этого оркестратор делает финальный синтез.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="quiz-card reveal">
+        <div class="quiz-q-header" onclick="toggleQuiz(this)">
+          <span class="quiz-q-num">3</span>
+          <span class="quiz-q-text">Почему для оркестратора была выбрана более дешёвая модель?</span>
+          <svg class="quiz-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="quiz-body">
+          <div class="quiz-options">
+            <button class="quiz-option" data-correct="false" onclick="selectOption(this)">
+              <span class="quiz-option-letter">A</span> Grok лучше всех моделей справляется с аналитикой
+            </button>
+            <button class="quiz-option" data-correct="true" onclick="selectOption(this)">
+              <span class="quiz-option-letter">B</span> Оркестратору не нужно синтезировать &mdash; он только координирует
+            </button>
+            <button class="quiz-option" data-correct="false" onclick="selectOption(this)">
+              <span class="quiz-option-letter">C</span> Grok &mdash; единственная модель с поддержкой мультиагентности
+            </button>
+            <button class="quiz-option" data-correct="false" onclick="selectOption(this)">
+              <span class="quiz-option-letter">D</span> Более дорогие модели работают медленнее
+            </button>
+          </div>
+          <div class="quiz-explanation" style="display:none">
+            <p>Денис объяснил, что оркестратор занимается объединением данных других ассистентов, а не генерацией контента, поэтому ему достаточно модели попроще и подешевле. Тяжёлую работу выполняют советники.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="quiz-card reveal">
+        <div class="quiz-q-header" onclick="toggleQuiz(this)">
+          <span class="quiz-q-num">4</span>
+          <span class="quiz-q-text">Как рассчитывается экономика подписки на Council Bot?</span>
+          <svg class="quiz-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="quiz-body">
+          <div class="quiz-options">
+            <button class="quiz-option" data-correct="true" onclick="selectOption(this)">
+              <span class="quiz-option-letter">A</span> 50 кредитов/ответ &times; 10 ответов/день &asymp; 3000 руб/мес
+            </button>
+            <button class="quiz-option" data-correct="false" onclick="selectOption(this)">
+              <span class="quiz-option-letter">B</span> 100 кредитов/ответ &times; 5 ответов/день &asymp; 5000 руб/мес
+            </button>
+            <button class="quiz-option" data-correct="false" onclick="selectOption(this)">
+              <span class="quiz-option-letter">C</span> 10 кредитов/ответ &times; 50 ответов/день &asymp; 1000 руб/мес
+            </button>
+            <button class="quiz-option" data-correct="false" onclick="selectOption(this)">
+              <span class="quiz-option-letter">D</span> Безлимитные кредиты за фиксированную сумму
+            </button>
+          </div>
+          <div class="quiz-explanation" style="display:none">
+            <p>Денис показал расчёт: средний ответ Council Bot &asymp; 50 кредитов, при 10 ответах в день = 500 кредитов = &asymp; 100 руб/день = &asymp; 3000 руб/мес себестоимость. Подписка в 3000 руб. гарантирует работу в плюс.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="quiz-card reveal">
+        <div class="quiz-q-header" onclick="toggleQuiz(this)">
+          <span class="quiz-q-num">5</span>
+          <span class="quiz-q-text">Что делает функция &laquo;Дата истечения&raquo; в ячейке памяти?</span>
+          <svg class="quiz-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="quiz-body">
+          <div class="quiz-options">
+            <button class="quiz-option" data-correct="false" onclick="selectOption(this)">
+              <span class="quiz-option-letter">A</span> Удаляет ячейку памяти полностью для всех
+            </button>
+            <button class="quiz-option" data-correct="true" onclick="selectOption(this)">
+              <span class="quiz-option-letter">B</span> Скрывает данные от ассистента после даты, но оставляет доступ человеку
+            </button>
+            <button class="quiz-option" data-correct="false" onclick="selectOption(this)">
+              <span class="quiz-option-letter">C</span> Автоматически отправляет напоминание пользователю
+            </button>
+            <button class="quiz-option" data-correct="false" onclick="selectOption(this)">
+              <span class="quiz-option-letter">D</span> Переносит данные из постоянной памяти в динамическую
+            </button>
+          </div>
+          <div class="quiz-explanation" style="display:none">
+            <p>Денис привёл пример бота-афиши: события с датой истечения пропадают для ассистента после указанного времени, но остаются доступны для просмотра администратору. Есть инструмент поиска по истёкшим данным.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="quiz-card reveal">
+        <div class="quiz-q-header" onclick="toggleQuiz(this)">
+          <span class="quiz-q-num">6</span>
+          <span class="quiz-q-text">Для чего предназначена Песочница (Sandbox)?</span>
+          <svg class="quiz-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="quiz-body">
+          <div class="quiz-options">
+            <button class="quiz-option" data-correct="false" onclick="selectOption(this)">
+              <span class="quiz-option-letter">A</span> Для создания новых ассистентов с нуля
+            </button>
+            <button class="quiz-option" data-correct="true" onclick="selectOption(this)">
+              <span class="quiz-option-letter">B</span> Для тестирования промтов, моделей и сценариев с параллельными запросами
+            </button>
+            <button class="quiz-option" data-correct="false" onclick="selectOption(this)">
+              <span class="quiz-option-letter">C</span> Для общения с пользователями в безопасном режиме
+            </button>
+            <button class="quiz-option" data-correct="false" onclick="selectOption(this)">
+              <span class="quiz-option-letter">D</span> Для генерации изображений и видео
+            </button>
+          </div>
+          <div class="quiz-explanation" style="display:none">
+            <p>Песочница позволяет запускать параллельные запросы, менять модели и промты на лету, клонировать сценарии для side-by-side сравнения. Это основной инструмент отладки ассистентов.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GLOSSARY -->
+<section id="glossary">
+  <div class="content-wrap">
+    <span class="section-label reveal">Словарь</span>
+    <h2 class="section-title reveal">Глоссарий</h2>
+    <table class="glossary-table">
+      <tr class="reveal">
+        <td class="gl-term">Оркестратор</td>
+        <td class="gl-def">Центральный ассистент, управляющий процессом мультиагентного решения задач. Не решает задачи сам, а координирует работу других ассистентов</td>
+      </tr>
+      <tr class="reveal">
+        <td class="gl-term">Council Bot</td>
+        <td class="gl-def">Мультиагентная система из оркестратора и трёх советников (аналитик, креативщик, скептик) для принятия сложных решений через управляемый спор</td>
+      </tr>
+      <tr class="reveal">
+        <td class="gl-term">Бриф</td>
+        <td class="gl-def">Структурированная формулировка задачи, которую оркестратор составляет на основе запроса пользователя и передаёт советникам</td>
+      </tr>
+      <tr class="reveal">
+        <td class="gl-term">Раунд критики</td>
+        <td class="gl-def">Второй этап работы Council Bot: каждый советник получает решения коллег и ищет в них слабые места</td>
+      </tr>
+      <tr class="reveal">
+        <td class="gl-term">Раунд защиты</td>
+        <td class="gl-def">Третий этап: советники отвечают на критику, дорабатывают и защищают свои решения</td>
+      </tr>
+      <tr class="reveal">
+        <td class="gl-term">Синтез</td>
+        <td class="gl-def">Финальный этап: оркестратор объединяет все решения, критику и защиту в итоговый ответ для пользователя</td>
+      </tr>
+      <tr class="reveal">
+        <td class="gl-term">Кредиты</td>
+        <td class="gl-def">Внутренняя валюта AI from Space для измерения стоимости запросов. 500 кредитов &asymp; 100 рублей</td>
+      </tr>
+      <tr class="reveal">
+        <td class="gl-term">Дата истечения</td>
+        <td class="gl-def">Настройка ячейки памяти, после которой данные скрываются от ассистента, но остаются доступны администратору</td>
+      </tr>
+      <tr class="reveal">
+        <td class="gl-term">Песочница</td>
+        <td class="gl-def">Инструмент AI from Space для тестирования ассистентов: параллельные запросы, смена моделей, клонирование сценариев</td>
+      </tr>
+      <tr class="reveal">
+        <td class="gl-term">Вызов LLM-модели</td>
+        <td class="gl-def">Инструмент, позволяющий ассистенту напрямую обращаться к другой языковой модели без создания отдельного ассистента</td>
+      </tr>
+      <tr class="reveal">
+        <td class="gl-term">API-сервис</td>
+        <td class="gl-def">Инструмент для подключения внешних систем (CRM, календари и пр.) через их API с авторизацией по ключу</td>
+      </tr>
+      <tr class="reveal">
+        <td class="gl-term">Реферальная программа</td>
+        <td class="gl-def">Встроенная система AI from Space: пользователь получает уникальный код/ссылку, приводит новых пользователей, статистика отслеживается автоматически</td>
+      </tr>
+      <tr class="reveal">
+        <td class="gl-term">Telegram Stars</td>
+        <td class="gl-def">Валюта Telegram для оплаты ботов и сервисов. 100% звёзд идут создателю бота, вывод через крипту или рекламу</td>
+      </tr>
+      <tr class="reveal">
+        <td class="gl-term">Тред</td>
+        <td class="gl-def">Отдельная ветка диалога. Новый тред начинается командой /new и не содержит историю предыдущего</td>
+      </tr>
+      <tr class="reveal">
+        <td class="gl-term">Роль</td>
+        <td class="gl-def">Настраиваемый набор прав и инструментов для разных категорий пользователей (администратор, эксперт, дефолтный)</td>
+      </tr>
+    </table>
+  </div>
+</section>
+
+<!-- HOMEWORK -->
+<section id="homework">
+  <div class="content-wrap">
+    <span class="section-label reveal">Практика</span>
+    <h2 class="section-title reveal">Домашнее задание</h2>
+    <div class="hw-grid">
+
+      <div class="hw-card reveal">
+        <div class="hw-card-header">
+          <span class="hw-num n1">1</span>
+          <span class="hw-title">Создайте Council Bot</span>
+        </div>
+        <p class="hw-desc">Соберите собственного Council Bot в AI from Space по архитектуре, показанной на уроке: оркестратор + 3 советника. Выберите свою тематику (бизнес-решения, карьерные вопросы, здоровье, инвестиции). Напишите промты для каждой роли и протестируйте на 3 разных вопросах. Убедитесь, что оркестратор корректно проводит все три раунда.</p>
+        <label class="hw-check"><input type="checkbox"> Сделано</label>
+      </div>
+
+      <div class="hw-card reveal">
+        <div class="hw-card-header">
+          <span class="hw-num n2">2</span>
+          <span class="hw-title">Настройте монетизацию</span>
+        </div>
+        <p class="hw-desc">Для любого из ваших ботов (персональный помощник или Council Bot) настройте подписку: рассчитайте среднюю стоимость ответа в кредитах, определите дневной лимит, установите цену подписки. Настройте лимит для бесплатных пользователей так, чтобы человек мог получить демо-опыт, но не более.</p>
+        <label class="hw-check"><input type="checkbox"> Сделано</label>
+      </div>
+
+      <div class="hw-card reveal">
+        <div class="hw-card-header">
+          <span class="hw-num n3">3</span>
+          <span class="hw-title">Протестируйте в песочнице</span>
+        </div>
+        <p class="hw-desc">Возьмите одного из ваших ассистентов и протестируйте его в Песочнице. Создайте 3 сценария с разными вопросами. Клонируйте один сценарий, поменяйте модель и сравните результаты side-by-side. Определите, какая модель лучше справляется с задачами вашего ассистента.</p>
+        <label class="hw-check"><input type="checkbox"> Сделано</label>
+      </div>
+
+      <div class="hw-card reveal">
+        <div class="hw-card-header">
+          <span class="hw-num n4">4</span>
+          <span class="hw-title">Подготовьте демо к финальному уроку</span>
+        </div>
+        <p class="hw-desc">Подготовьте одного из своих ботов к демонстрации на воскресном финальном уроке. Убедитесь, что он работает в Telegram, имеет понятное приветственное сообщение (онбординг) и решает конкретную задачу. Напишите в чат курса, если готовы показать.</p>
+        <label class="hw-check"><input type="checkbox"> Сделано</label>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-left">
+    <div class="footer-brand">SPACEHUB</div>
+    <div class="footer-tagline">Собираем AI-агентов</div>
+  </div>
+  <div class="footer-nav">
+    <a href="#toc">Содержание</a>
+    <a href="#architecture">Архитектура</a>
+    <a href="#quiz">Квиз</a>
+    <a href="#glossary">Глоссарий</a>
+    <a href="#homework">Домашка</a>
+  </div>
+</footer>
+
+<!-- YouTube -->
+<script>
+function seekTo(seconds) {
+  var iframe = document.getElementById('yt-player');
+  iframe.src = 'https://www.youtube-nocookie.com/embed/KMbDtrJYuYM?rel=0&modestbranding=1&color=white&autoplay=1&start=' + seconds;
+  document.querySelector('.video-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// Scroll reveal
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), i * 80);
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.12 });
+reveals.forEach(el => observer.observe(el));
+
+// Timestamp clicks -> seek video
+document.querySelectorAll('.ts-time[data-seconds]').forEach(btn => {
+  btn.addEventListener('click', () => seekTo(parseInt(btn.dataset.seconds)));
+});
+
+// TOC timestamp clicks -> seek video
+document.querySelectorAll('.toc-item').forEach(item => {
+  item.addEventListener('click', (e) => {
+    const timeText = item.querySelector('.toc-time')?.textContent;
+    if (timeText) {
+      const parts = timeText.split(':');
+      let seconds;
+      if (parts.length === 3) {
+        seconds = parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseInt(parts[2]);
+      } else {
+        seconds = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+      }
+      seekTo(seconds);
+      e.preventDefault();
+    }
+  });
+});
+
+// Topic timestamp clicks -> seek video
+document.querySelectorAll('.topic-ts').forEach(ts => {
+  ts.style.cursor = 'pointer';
+  ts.addEventListener('click', () => {
+    const parts = ts.textContent.split(':');
+    let seconds;
+    if (parts.length === 3) {
+      seconds = parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseInt(parts[2]);
+    } else {
+      seconds = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    }
+    seekTo(seconds);
+  });
+});
+
+// Quiz toggle
+function toggleQuiz(header) {
+  const card = header.closest('.quiz-card');
+  card.classList.toggle('open');
+}
+
+// Quiz answer select
+function selectOption(btn) {
+  const card = btn.closest('.quiz-card');
+  const options = card.querySelectorAll('.quiz-option');
+  const explanation = card.querySelector('.quiz-explanation');
+
+  if (card.dataset.answered) return;
+  card.dataset.answered = 'true';
+
+  const isCorrect = btn.dataset.correct === 'true';
+  btn.classList.add(isCorrect ? 'correct' : 'wrong');
+
+  options.forEach(o => {
+    if (o !== btn) o.classList.add('disabled');
+    if (o.dataset.correct === 'true' && !isCorrect) o.classList.add('correct');
+  });
+
+  if (explanation) explanation.style.display = 'block';
+}
+
+// Mobile menu
+const hamburger = document.querySelector('.hamburger');
+const navLinks = document.querySelector('.nav-links');
+hamburger.addEventListener('click', () => {
+  const open = navLinks.style.display === 'flex';
+  navLinks.style.display = open ? 'none' : 'flex';
+  navLinks.style.flexDirection = 'column';
+  navLinks.style.position = 'absolute';
+  navLinks.style.top = '100%';
+  navLinks.style.left = '0';
+  navLinks.style.right = '0';
+  navLinks.style.background = 'rgba(10,10,15,0.95)';
+  navLinks.style.padding = '1.5rem';
+  navLinks.style.gap = '1.2rem';
+  navLinks.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+});
+</script>
+
+</body>
+</html>
